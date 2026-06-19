@@ -56,6 +56,7 @@ export default function ProPage() {
   const metrics = data?.metrics;
   const scores = data?.scores;
   const monetization = data?.monetization;
+  const platform = data?.platform;
 
   return (
     <div className="py-8">
@@ -174,6 +175,61 @@ export default function ProPage() {
         </div>
         <p className="mt-3 font-mono text-[10px] text-mut">
           Royalty figures are simulated analytics only. No ledger transfers are executed in this sprint.
+        </p>
+      </section>
+
+      <section className="panel p-5 mb-6">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+          <div>
+            <p className="eyebrow">Culture Platform Surface</p>
+            <h2 className="mt-2 font-display font-semibold text-2xl">
+              Campaigns, profiles, and leagues on top of the exchange
+            </h2>
+            <p className="mt-2 text-sm text-mut max-w-2xl">
+              The same live market data can support sponsored missions, creator and brand
+              profiles, premium scout tournaments, and analytics subscriptions.
+            </p>
+          </div>
+          <div className="font-mono text-right">
+            <p className="text-4xl text-amber tnum">
+              {platform ? money(platform.simulatedCampaignValue) : "--"}
+            </p>
+            <p className="text-xs text-mut">simulated campaign value $H</p>
+          </div>
+        </div>
+        <div className="grid md:grid-cols-4 gap-3 mb-4">
+          <Link href="/campaigns" className="border border-line rounded bg-ink p-3 hover:border-amber transition">
+            <p className="eyebrow">Active campaigns</p>
+            <p className="mt-2 font-mono text-2xl text-amber tnum">{platform?.activeCampaigns ?? 0}</p>
+          </Link>
+          <Link href="/leagues" className="border border-line rounded bg-ink p-3 hover:border-amber transition">
+            <p className="eyebrow">Sponsored leagues</p>
+            <p className="mt-2 font-mono text-2xl tnum">{platform?.sponsoredLeagues ?? 0}</p>
+          </Link>
+          <div className="border border-line rounded bg-ink p-3">
+            <p className="eyebrow">Creator/brand profiles</p>
+            <p className="mt-2 font-mono text-2xl tnum">{platform?.creatorBrandProfiles ?? 0}</p>
+          </div>
+          <div className="border border-line rounded bg-ink p-3">
+            <p className="eyebrow">Rewards mode</p>
+            <p className="mt-2 font-mono text-sm text-mut">simulated only</p>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-5 gap-2">
+          {(platform?.channels ?? [
+            "Sponsored IPOs",
+            "HYPE Pro subscriptions",
+            "Brand campaign missions",
+            "Creator royalty analytics",
+            "Culture leagues",
+          ]).map((channel: string) => (
+            <div key={channel} className="border border-line rounded bg-ink p-3">
+              <p className="font-mono text-xs text-amber">{channel}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 font-mono text-[10px] text-mut">
+          Campaign value, league rewards, and royalty channels are analytics-only. The ledger is unchanged.
         </p>
       </section>
 
