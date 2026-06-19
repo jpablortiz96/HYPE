@@ -13,7 +13,6 @@ const LINKS = [
   { href: "/portfolio", label: "Portfolio" },
   { href: "/pro", label: "Pro" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/ledger", label: "Ledger" },
 ];
 
 export default function Nav() {
@@ -22,18 +21,35 @@ export default function Nav() {
   const user = data?.user;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-ink/90 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-4 h-14 flex items-center gap-6">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="font-display text-lg font-extrabold tracking-tight text-amber">
-            HYPE
-          </span>
-          <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-[0.25em] text-mut">
-            The Culture Exchange
-          </span>
-        </Link>
+    <header className="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur overflow-hidden">
+      <div className="mx-auto max-w-6xl px-4 py-2 flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-5">
+        <div className="flex items-center justify-between gap-3 min-w-0">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <span className="font-display text-lg font-extrabold tracking-tight text-amber">
+              HYPE
+            </span>
+            <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-[0.25em] text-mut">
+              The Culture Exchange
+            </span>
+          </Link>
 
-        <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto">
+          <div className="flex items-center gap-2 shrink-0 lg:hidden">
+            {user ? (
+              <>
+                <span className="font-mono text-[11px] text-mut max-w-[7rem] truncate">
+                  @{user.username}
+                </span>
+                <span className="font-mono text-xs text-amber tnum">
+                  {money(user.cash)} <span className="text-amberdim">$H</span>
+                </span>
+              </>
+            ) : (
+              <span className="font-mono text-xs text-mut animate-pulseamber">opening...</span>
+            )}
+          </div>
+        </div>
+
+        <nav className="flex min-w-0 flex-wrap items-center gap-1 sm:gap-1.5">
           {LINKS.map((l) => {
             const active = pathname?.startsWith(l.href);
             return (
@@ -50,10 +66,10 @@ export default function Nav() {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-3 shrink-0">
+        <div className="ml-auto hidden lg:flex items-center gap-3 shrink-0">
           {user ? (
             <>
-              <span className="hidden md:inline font-mono text-xs text-mut">
+              <span className="font-mono text-xs text-mut max-w-40 truncate">
                 @{user.username}
               </span>
               <span className="font-mono text-xs sm:text-sm text-amber tnum">
