@@ -1,149 +1,242 @@
-# HYPE — The Culture Exchange
+# HYPE - The Culture Exchange
 
-**A planet-scale stock market for culture — memes, sounds and trends — where every trade settles on Amazon Aurora DSQL and the exchange proves its own solvency, live, to the micro-unit.**
+**Play money. Real database guarantees. Internet culture finally has a market.**
 
-Built for the **H0 Hackathon — Hack the Zero Stack** (Vercel v0 + AWS Databases) · Track 3: Million-scale.
+HYPE is a trading-style culture exchange for memes, sounds, creators, sports moments,
+fashion signals, AI trends, and internet-native cultural assets. It is built for the
+**H0 Hackathon - Hack the Zero Stack**, Track 3: Million-scale Global App, using
+**Vercel + Amazon Aurora DSQL** as the trust layer.
 
----
+[Live demo](https://hype-rust.vercel.app) | [Judges start here](docs/JUDGES_START_HERE.md) | [Architecture](docs/architecture.md) | [Submission notes](docs/submission.md) | [Demo script](docs/demo-script.md)
 
-## The pitch in 30 seconds
+![H0 Hackathon](https://img.shields.io/badge/H0%20Hackathon-Track%203%20Million--scale-ffb300?style=flat-square)
+![Vercel](https://img.shields.io/badge/Vercel-Next.js%20App%20Router-black?style=flat-square)
+![Aurora DSQL](https://img.shields.io/badge/Amazon%20Aurora%20DSQL-ACID%20ledger-2ce08b?style=flat-square)
+![Proof of Solvency](https://img.shields.io/badge/Proof%20of%20Solvency-drift%200%20micro-2ce08b?style=flat-square)
 
-Culture already behaves like a market: a sound from Medellín explodes, a meme from CDMX peaks and crashes, a trend out of São Paulo mints winners and bagholders. HYPE makes that market real. Every cultural asset trades on a transparent **bonding curve** — buying mints shares and pushes the price up, selling burns them and pulls it down. No order book theater, no hidden market maker.
+> Video placeholder: add the final public demo video URL here before submission.
 
-The hard part isn't the game. It's the ledger. A market for the whole internet means **thousands of concurrent trades mutating the same hot rows** — wallets, supplies, reserves. Most demos fake this. HYPE doesn't:
+## The Problem
 
-> **The Insolvency Test:** fire hundreds of concurrent trades at the exchange while a public audit page recomputes, every 2 seconds, the equation `Σ user cash + Σ curve reserves = Σ money ever minted`. The drift counter stays at **0 micro-units. Exactly. Always.**
+Internet culture already behaves like a market. A sound breaks out, a meme peaks,
+a fashion signal jumps from niche to mainstream, a creator moment becomes a global
+reference. Attention moves billions of dollars in commerce, media, and brand spend,
+but there is no shared market surface for discovering, pricing, and monetizing
+cultural momentum.
 
-That guarantee is not clever application code. It is **Amazon Aurora DSQL** doing what it was built for.
+Most trend products are dashboards after the fact. HYPE makes cultural signals
+tradeable in real time.
 
-## Why Aurora DSQL (a deliberate choice, not a checkbox)
+## The Solution
 
-| Exchange requirement | What Aurora DSQL provides |
-|---|---|
-| Trades must never partially apply | Full ACID PostgreSQL-compatible transactions |
-| Concurrent trades on the same asset must not corrupt the curve | **Strong snapshot isolation with optimistic concurrency control** — conflicting commits abort with SQLSTATE `40001`; the engine retries with a fresh read. No locks, no lock manager to melt down |
-| A culture market is global by definition | **Active-active multi-region** — there is no single write master to shard around. A trader in Bogotá and one in Tokyo write to the same logical database |
-| Viral spikes are the business model | Serverless, scales to zero, no connection-pool ceiling to babysit |
-| Money must be auditable | IAM auth (no static DB passwords) + a schema designed so solvency is a single SQL query |
+HYPE gives every visitor 10,000 play-money $H and lets them trade cultural assets
+on transparent bonding curves. Buying mints shares and moves the price up. Selling
+burns shares and moves the price down. The market is always liquid, the pricing rule
+is public, and the ledger is auditable.
 
-The engine treats `40001` as **normal operation**, not an error: `withTx()` in [`src/lib/db.ts`](src/lib/db.ts) retries with exponential backoff + jitter (max 8 attempts) and reports retry counts all the way up to the UI — after a contested trade the trade desk literally tells you *"settled · 3 OCC retries"*.
+The product is not only a meme market. **HYPE is the monetization layer for internet
+culture.**
 
-> Schema decisions made *for* DSQL, visible in [`db/schema.sql`](db/schema.sql): no sequences (UUIDs minted in the app), no foreign keys (integrity enforced by the settlement transaction), composite primary key on `holdings(user_id, asset_id)` so concurrent first-buys conflict on the PK and resolve through the OCC retry path, and secondary indexes created with `CREATE INDEX ASYNC` when targeting DSQL.
+Core surfaces:
 
-## The math that makes drift impossible
+- **Culture market board** with prices, volume, change, badges, filters, and mini sparklines.
+- **Asset terminals** with a trading-style chart, live trade desk, and market metrics.
+- **Buy/sell play money** through a transaction engine that settles on Aurora DSQL.
+- **Market Depth / Slippage Simulator** that previews buy impact without writing to the DB.
+- **Proof of Solvency** at `/ledger`, recomputing the exchange invariants from live data.
+- **HYPE Pro analytics** at `/pro`, a B2B cultural intelligence terminal.
+- **Trend Scout Score** in `/portfolio`, turning user behavior into a future reputation layer.
+- **Trend IPO / List a Trend** at `/list`, including sponsored IPO simulation.
+- **Brand Campaign Missions** at `/campaigns`.
+- **Culture Leagues** at `/leagues`.
+- **Creator/Brand profiles**, leaderboard, and portfolio.
 
-All money is **integer micro-units** (`1 $H = 1,000,000 micro`, BigInt everywhere). Shares are whole integers. The bonding curve is linear and discrete:
+## Why This Has A Path To A $100M-Scale Opportunity
 
+HYPE is a venture-scale thesis, not a claim of current revenue, valuation, or users.
+The path is the combination of consumer liquidity, cultural data, and B2B monetization:
+
+- **HYPE Pro subscriptions** for creators, agencies, brands, and trend researchers.
+- **Sponsored IPOs** where creators or brands promote new cultural assets.
+- **Brand Campaign Missions** that convert trend attention into measurable briefs.
+- **Culture Leagues** for sponsored scout competitions and brand-funded prizes.
+- **Creator royalty analytics** and revenue simulations over cultural volume.
+- **Data/API licensing** for agencies, platforms, labels, and research teams.
+- **Premium scout reputation marketplace** where top scouts sell cultural insight.
+- **Enterprise dashboards** for brand readiness, creator discovery, and market timing.
+
+The wedge is LATAM-first internet culture. The expansion path is global: music,
+fashion, sports, AI-native media, creator economies, gaming, and brand research.
+
+## Why The H0 Stack Matters
+
+The hard part is not drawing a market UI. The hard part is settlement.
+
+A culture exchange has hot rows: wallets, asset supplies, reserves, and holdings.
+During a viral spike, many trades hit the same asset at the same time. HYPE uses
+Amazon Aurora DSQL as the database trust boundary:
+
+- Every trade is an ACID transaction.
+- Aurora DSQL uses optimistic concurrency control; real conflicts abort instead of
+  silently corrupting the curve.
+- `withTx()` retries retryable conflicts (`40001`, `40P01`, `OC000`, and DSQL change
+  conflict messages) with exponential backoff and jitter.
+- Prices are recomputed from a fresh read on every retry.
+- The public ledger proves the result from the database, not from cached app state.
+
+Local Postgres remains compatible. HYPE deliberately keeps the transaction difference:
+
+```ts
+isDsql() ? "BEGIN" : "BEGIN ISOLATION LEVEL REPEATABLE READ"
 ```
-Spot price at supply s:   P(s) = base + slope·s
-Buy q shares:             cost = q·base + slope·(s·q + q(q−1)/2)
-Sell q shares:            proceeds = q·base + slope·(s·q − q(q+1)/2)
-Reserve at supply s:      R(s) = s·base + slope·s(s−1)/2
+
+DSQL already provides strong snapshot isolation. Local Postgres is raised to
+`REPEATABLE READ` so the same conflict behavior appears in development.
+
+## The Ledger Guarantee
+
+All money is represented as **BigInt micro-units**:
+
+```txt
+1 $H = 1,000,000 micro-units
 ```
 
-A round-trip of one share nets exactly 0 (before fees), so two invariants hold **exactly** — `==`, not `epsilon`:
+No floats are used for internal money math. Shares are whole integers. The bonding
+curve is linear and discrete:
 
-1. `Σ user cash + Σ asset reserve === Σ minted` (money is conserved)
-2. per asset: `stored reserve === R(supply)` (the curve never lied)
+```txt
+spotPrice(s) = base + slope * s
+buyCost(q)  = q * base + slope * (s * q + q * (q - 1) / 2)
+reserve(s)  = s * base + slope * s * (s - 1) / 2
+```
 
-A 1% fee on sells routes to the `HYPE_TREASURY` account — that's the revenue line, and it preserves invariant 1 because the fee is a transfer, not a burn.
+Two invariants are sacred:
 
-`npm run verify:math` proves both invariants over ~200,000 randomized in-memory trades. `npm run sim:pump` proves them under real concurrency against the real database.
+```txt
+sum(user.cash) + sum(asset.reserve) === sum(user.granted)
+asset.reserve === reserveAt(base, slope, supply)
+```
+
+`/ledger` recomputes both from live database state. The target result is:
+
+```txt
+drift 0 micro
+ledger balanced YES - EXACT
+curve consistent YES
+```
+
+The stress command `npm run sim:pump` fires concurrent trades against the real
+database and reports OCC retries plus final invariant status.
+
+## Technical Implementation
+
+- **Next.js App Router**, React, TypeScript, Tailwind.
+- **Vercel** for deployment and serverless API routes.
+- **Amazon Aurora DSQL** for production persistence.
+- **PostgreSQL local mode** for development.
+- **node-postgres (`pg`)** as the driver.
+- **`@aws-sdk/dsql-signer`** for IAM database auth tokens.
+- **BigInt + micro-units** for all settlement math.
+- **Node.js API routes** with `force-dynamic`.
+- **Aurora DSQL OCC retries** with rollback safety, exponential backoff, jitter, and
+  retry statistics surfaced to the trade result.
+- **`CREATE INDEX ASYNC`** when setting up schema against DSQL.
+- **No float accounting** in the engine.
+
+Schema choices made for Aurora DSQL:
+
+- UUIDs minted in the app, not sequences.
+- No foreign keys; integrity is enforced by the settlement transaction.
+- Composite holdings key: `(user_id, asset_id)`.
+- `users.granted` records every $H minted to a user, making solvency a direct aggregate.
+- Stored reserves are checked against the closed-form curve.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  subgraph Client["Browser (instant play, no signup)"]
-    UI["Next.js 15 UI<br/>amber terminal · SWR live polling"]
-  end
-  subgraph Vercel["Vercel (serverless)"]
-    API["API routes<br/>/api/trade · /api/market · /api/integrity …"]
-    ENGINE["Settlement engine<br/>BigInt curve math · OCC retry (40001)"]
-  end
-  subgraph AWS["AWS"]
-    DSQL[("Amazon Aurora DSQL<br/>active-active · strong snapshot isolation<br/>IAM token auth")]
-  end
-  UI -->|"fetch + cookies (HMAC session)"| API --> ENGINE -->|"pg + @aws-sdk/dsql-signer"| DSQL
+  Browser["Browser\nMarket, Asset, Portfolio, Pro, Ledger"] --> Vercel["Vercel\nNext.js App Router + API routes"]
+  Vercel --> Session["HMAC session cookie\nstateless guest account"]
+  Vercel --> Trade["Trade engine\nBigInt curve math\nOCC retry"]
+  Vercel --> ReadAPIs["Read APIs\nmarket, asset, pro, scout,\ncampaigns, leagues, profiles"]
+  Trade --> DSQL[("Amazon Aurora DSQL\nACID transactions\nOCC conflicts\nIAM auth")]
+  ReadAPIs --> DSQL
+  Vercel --> Ledger["Integrity engine\nProof of Solvency"]
+  Ledger --> DSQL
 ```
 
-Full diagram with data model: [`docs/architecture.md`](docs/architecture.md) · [`docs/architecture.svg`](docs/architecture.svg)
+Full architecture notes: [docs/architecture.md](docs/architecture.md) and
+[docs/architecture.svg](docs/architecture.svg).
 
-### Data model (4 tables)
+## Screenshots
 
-- **users** — `cash` and `granted` in micro-units; `granted` records every $H ever minted to that account, which is what makes the solvency audit one query.
-- **assets** — `base_price`, `slope`, `supply`, `reserve`; price is *derived*, never stored.
-- **holdings** — composite PK `(user_id, asset_id)`, integer `qty`, proportional `cost_basis`.
-- **trades** — append-only tape; powers charts, 24h stats and the leaderboard.
+| Surface | Screenshot |
+|---|---|
+| Home | [01-home.png](docs/submission-assets/01-home.png) |
+| Market board | [02-market.png](docs/submission-assets/02-market.png) |
+| Asset terminal / CORRIDO | [03-asset-corrido.png](docs/submission-assets/03-asset-corrido.png) |
+| Proof of Solvency | [04-ledger-proof.png](docs/submission-assets/04-ledger-proof.png) |
+| HYPE Pro | [05-pro-analytics.png](docs/submission-assets/05-pro-analytics.png) |
+| List a Trend | [06-list-trend.png](docs/submission-assets/06-list-trend.png) |
+| Campaigns | [07-campaigns.png](docs/submission-assets/07-campaigns.png) |
+| Leagues | [08-leagues.png](docs/submission-assets/08-leagues.png) |
+| Aurora DSQL console | [docs/aws-console-dsql.png](docs/aws-console-dsql.png) |
+| `sim:pump` terminal | [05-sim-pump-dsql-terminal.png](docs/submission-assets/05-sim-pump-dsql-terminal.png) |
 
-## Run it locally (5 minutes)
+Vercel dashboard screenshot is intentionally not included in the repo yet. Add it to
+`docs/submission-assets/` if the submission form asks for deployment proof.
+
+## Run Locally
 
 ```powershell
 git clone https://github.com/jpablortiz96/hype.git
 cd hype
 npm install
-copy .env.example .env          # defaults work for local mode
+copy .env.example .env
 
-docker compose up -d            # local PostgreSQL 16 on :5432
-# In .env, uncomment: DATABASE_URL=postgresql://hype:hype@localhost:5432/hype
+docker compose up -d
+# In .env, use DATABASE_URL=postgresql://hype:hype@localhost:5432/hype
 
-npm run db:setup                # create schema
-npm run db:seed                 # 12 LATAM cultural assets + 72h of history
-npm run dev                     # http://localhost:3000
+npm run db:setup
+npm run db:seed
+npm run dev
 ```
 
-Then break it (you won't):
+Open `http://localhost:3000`.
+
+## Verification Commands
 
 ```powershell
-npm run sim:pump                # 200 concurrent trades, live drift report
-npm run sim:ambient             # gentle background flow for demos
-npm run verify:math             # 200k-trade in-memory invariant proof
+npm run build
+npm run verify:math
+npm run sim:pump
 ```
 
-> Local Postgres runs transactions at `REPEATABLE READ` so it raises the same `40001` conflicts DSQL does — the demo behaves identically in both modes.
+`db:seed` wipes and reseeds demo data. Do not run it against production unless you
+intentionally want to reset the demo database.
 
-## Run it on Aurora DSQL (production / judging)
+## Production / Judging
 
-1. **AWS Console → Aurora DSQL → Create cluster** (e.g. `us-east-1`). Copy the endpoint: `xxxxxxxx.dsql.us-east-1.on.aws`.
-2. Give your IAM identity the connect permission:
-   ```json
-   { "Effect": "Allow", "Action": "dsql:DbConnectAdmin", "Resource": "arn:aws:dsql:us-east-1:<account>:cluster/<cluster-id>" }
-   ```
-3. In `.env` (and later in Vercel → Project → Settings → Environment Variables):
-   ```
-   DSQL_ENDPOINT=xxxxxxxx.dsql.us-east-1.on.aws
-   AWS_REGION=us-east-1
-   AWS_ACCESS_KEY_ID=...
-   AWS_SECRET_ACCESS_KEY=...
-   DSQL_USER=admin
-   SESSION_SECRET=<long random string>
-   ```
-   (Remove/comment `DATABASE_URL` — its presence selects local mode.)
-4. `npm run db:setup && npm run db:seed` — the setup script automatically rewrites secondary indexes to `CREATE INDEX ASYNC` for DSQL.
-5. Deploy: `vercel --prod` (or import the repo at vercel.com). Done — the same code path now mints IAM auth tokens per connection via `@aws-sdk/dsql-signer`.
+- Live app: https://hype-rust.vercel.app
+- Repo owner: `jpablortiz96`
+- Project: `HYPE - The Culture Exchange`
+- Track: H0 Hackathon Track 3, Million-scale Global App
+- Database: Amazon Aurora DSQL
+- Key proof route: `/ledger`
+- Main walkthrough route: `/market` -> `/asset/CORRIDO` -> `/ledger` -> `/pro`
 
-## Million-scale notes (Track 3)
+## Honest Limits
 
-- **Reads** are cheap aggregates over indexed append-only data; every page is SWR-polled JSON that caches trivially at the edge.
-- **Writes** are short single-row-set transactions; under OCC, throughput degrades gracefully into retries instead of collapsing into lock queues. The pump test sustains ~240 settlements/sec from a laptop against local PG with zero drift — DSQL's distributed commit takes the same code multi-region.
-- **No coordination bottleneck**: no sequences, no FK cascades, no global locks — the schema was shaped so the only contention is the genuinely contended thing (the hot asset row), which is exactly what OCC retries are for.
-- **Sessions** are stateless HMAC-signed cookies; no session store to scale.
+- HYPE uses play money; it is not a securities product.
+- Payment flows are not implemented. Sponsored IPOs, campaigns, prizes, and royalty
+  surfaces are product simulations over live market data.
+- The current market maker is a deterministic bonding curve, not a full order book.
+- Some analytics are intentionally simple and robust for the hackathon build.
 
-## Honest limitations
+## Author
 
-- Bonding curve = always-liquid but path-deterministic pricing; no limit orders (yet).
-- 24h change uses the trade tape as reference; a fresh database shows `—` until history accumulates.
-- Play money. The point is the settlement engine, not securities law.
-- Vercel preview cold starts add latency to the first request after idle.
+Juan Pablo Enriquez Ortiz ([@jpablortiz96](https://github.com/jpablortiz96))
 
-## Roadmap
+Built for the H0 Hackathon with Vercel and Amazon Aurora DSQL.
 
-Listing/IPO flow for new assets (anyone can list a trend), per-region market hours as events, creator royalties from the treasury, WebSocket tape, and DSQL multi-region read affinity.
-
----
-
-**Stack:** Next.js 15 · React 19 · TypeScript · Tailwind · SWR · `pg` · `@aws-sdk/dsql-signer` · Amazon Aurora DSQL · Vercel
-
-**Author:** Juan Pablo Enríquez Ortiz ([@jpablortiz96](https://github.com/jpablortiz96)) — Cali, Colombia 🇨🇴
-
-*Play money. Real database guarantees.*
+**Play money. Real database guarantees. The ledger never lies.**

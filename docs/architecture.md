@@ -1,79 +1,143 @@
-# HYPE — Architecture
+# HYPE Architecture
 
-## System overview
+HYPE is a culture exchange built on Next.js, Vercel, and Amazon Aurora DSQL. The
+application is designed around one principle: the database is the trust boundary.
+The UI can be playful, but settlement and solvency are verified from durable state.
+
+## System Overview
 
 ```mermaid
 flowchart TB
-  subgraph Browser
-    L["Landing / Market / Asset / Portfolio /<br/>Leaderboard / Ledger (Proof of Solvency)"]
-    SWR["SWR polling: market 4s · integrity 2s · me 5s"]
+  subgraph Browser["Browser"]
+    UI["Next.js App Router pages\n/, /market, /asset/:symbol, /portfolio,\n/ledger, /pro, /list, /campaigns, /leagues,\n/profile/:slug, /leaderboard"]
+    SWR["SWR polling\nmarket 4s, integrity 2s, user 5s"]
   end
 
-  subgraph Vercel["Vercel — serverless Next.js 15"]
-    direction TB
-    MW["HMAC-signed cookie session<br/>(stateless, no session store)"]
-    R1["/api/market · /api/asset/:symbol<br/>/api/portfolio · /api/leaderboard"]
-    R2["/api/trade (POST)"]
-    R3["/api/integrity"]
-    ENG["Settlement engine (src/lib/engine.ts)<br/>BigInt bonding-curve math<br/>withTx(): OCC retry on 40001/40P01<br/>backoff + jitter, max 8 attempts"]
+  subgraph Vercel["Vercel Serverless"]
+    Session["HMAC session cookie\nstateless guest accounts"]
+    ReadAPI["Read APIs\n/api/market, /api/asset, /api/portfolio,\n/api/pro, /api/scout, /api/campaigns,\n/api/leagues, /api/profile"]
+    TradeAPI["/api/trade\nnodejs runtime, force-dynamic"]
+    ListAPI["/api/list\nTrend IPO creation"]
+    IntegrityAPI["/api/integrity\nProof of Solvency"]
+    Engine["Settlement engine\nBigInt micro-units\nbonding curve math\nwithTx OCC retries"]
+    Integrity["Integrity engine\nrecompute ledger and curve invariants"]
   end
 
-  subgraph AWS
-    DSQL[("Amazon Aurora DSQL<br/>PostgreSQL-compatible · serverless<br/>active-active multi-region<br/>strong snapshot isolation (OCC)<br/>IAM token auth via @aws-sdk/dsql-signer")]
+  subgraph AWS["AWS"]
+    Signer["@aws-sdk/dsql-signer\nshort-lived IAM auth tokens"]
+    DSQL[("Amazon Aurora DSQL\nPostgreSQL-compatible\nACID transactions\nstrong snapshot isolation\noptimistic concurrency control")]
   end
 
-  L --> SWR --> R1
-  L --> R2
-  L --> R3
-  MW -.identifies.-> R1 & R2 & R3
-  R2 --> ENG
-  R1 --> DSQL
-  R3 --> DSQL
-  ENG --> DSQL
+  UI --> SWR
+  SWR --> ReadAPI
+  SWR --> IntegrityAPI
+  UI --> TradeAPI
+  UI --> ListAPI
+  Session -. identifies .-> ReadAPI
+  Session -. identifies .-> TradeAPI
+  Session -. identifies .-> ListAPI
+  TradeAPI --> Engine
+  ListAPI --> DSQL
+  ReadAPI --> DSQL
+  IntegrityAPI --> Integrity
+  Integrity --> DSQL
+  Engine --> DSQL
+  Signer --> DSQL
 ```
 
-## The settlement transaction (the heart)
+SVG version: [architecture.svg](architecture.svg)
 
-Every trade is **one ACID transaction** that touches at most 4 rows:
+## Request Flow
+
+### Read paths
+
+Most pages are read-heavy:
+
+- `/market` reads asset stats, 24h volume, change, sponsored/new/hot signals, and sparkline points.
+- `/asset/[symbol]` reads a single asset terminal, chart series, recent tape, and current user position.
+- `/pro` derives B2B analytics from existing assets and trades.
+- `/portfolio` reads holdings plus `/api/scout` for the Trend Scout Score.
+- `/campaigns`, `/leagues`, and `/profile/[slug]` are product surfaces derived from current market data.
+- `/ledger` polls `/api/integrity` every two seconds.
+
+These routes do not move money.
+
+### Write paths
+
+There are two important write paths:
+
+- `/api/trade` calls `executeTrade()` and moves cash, reserves, holdings, and trade tape entries.
+- `/api/list` creates a new cultural asset with initial `supply = 0` and `reserve = 0`, which preserves
+  `reserveAt(base, slope, 0) === 0`.
+
+The trading engine is the critical path. Listing creates metadata and a clean curve; it does not alter
+existing balances, reserves, or treasury funds.
+
+## Settlement Transaction
+
+Every trade is one ACID transaction:
 
 ```mermaid
 sequenceDiagram
-  participant U as Trader
+  participant User as Trader
   participant API as /api/trade
-  participant E as Engine (withTx)
-  participant D as Aurora DSQL
+  participant Tx as withTx()
+  participant DB as Aurora DSQL
 
-  U->>API: POST {symbol, side, qty}
-  API->>E: executeTrade(user, symbol, side, qty)
-  E->>D: BEGIN
-  E->>D: SELECT asset (base, slope, supply, reserve)
-  E->>D: SELECT user cash / holding qty
-  Note over E: BigInt curve math:<br/>cost = q·base + slope·(s·q + q(q−1)/2)
-  E->>D: UPDATE users SET cash = cash − cost
-  E->>D: UPDATE assets SET supply += q, reserve += cost
-  E->>D: INSERT/UPDATE holdings (composite PK upsert)
-  E->>D: INSERT trades (append-only tape)
-  E->>D: COMMIT
-  alt another trade touched the same rows
-    D-->>E: ABORT — SQLSTATE 40001 (OCC conflict)
-    E->>E: backoff + jitter, re-read, recompute
-    E->>D: retry transaction (max 8)
+  User->>API: POST {symbol, side, qty}
+  API->>Tx: executeTrade(userId, symbol, side, qty)
+  Tx->>DB: BEGIN
+  Tx->>DB: SELECT asset base, slope, supply, reserve
+  Tx->>DB: SELECT user cash and holding
+  Note over Tx: BigInt curve math only
+  Tx->>DB: UPDATE users
+  Tx->>DB: UPDATE assets
+  Tx->>DB: INSERT or UPDATE holdings
+  Tx->>DB: INSERT trades
+  Tx->>DB: COMMIT
+  alt OCC conflict
+    DB-->>Tx: 40001 / OC000 change conflict
+    Tx->>Tx: rollback, backoff with jitter, retry fresh
+    Tx->>DB: re-read and recompute
   end
-  E-->>API: fill report (+ retry count)
-  API-->>U: "Filled 25 CAPY · 2 OCC retries"
+  Tx-->>API: fill report and retry count
+  API-->>User: settled trade preview/result
 ```
 
-Key property: the cost is **recomputed from a fresh read on every retry**, so a conflicting concurrent trade can never make the engine settle at a stale price. This is what keeps invariant 2 (`reserve === R(supply)`) exact under fire.
+The cost is recomputed after every retry. A stale quote is never committed after a
+concurrent trade changes supply.
 
-## Data model
+## Transaction Modes
+
+HYPE supports local Postgres and Aurora DSQL through the same code path.
+
+```ts
+await client.query(isDsql() ? "BEGIN" : "BEGIN ISOLATION LEVEL REPEATABLE READ");
+```
+
+- Aurora DSQL uses `BEGIN` because DSQL already provides strong snapshot isolation.
+- Local Postgres uses `REPEATABLE READ` so hot-row conflicts surface as retryable errors instead of
+  silently allowing lost updates.
+
+Retryable transaction errors include:
+
+- SQLSTATE `40001`
+- SQLSTATE `40P01`
+- messages containing `OC000`
+- messages containing `change conflicts with another transaction`
+
+Backoff uses a 25ms base, jitter, and a 1000ms cap. The current engine allows up to 64 attempts
+for high-contention demo bursts.
+
+## Data Model
 
 ```mermaid
 erDiagram
   USERS {
     uuid id PK
     varchar username
-    bigint cash "micro-units"
-    bigint granted "all $H ever minted to this account"
+    bigint cash
+    bigint granted
     boolean is_bot
     timestamptz created_at
   }
@@ -84,17 +148,21 @@ erDiagram
     varchar category
     varchar emoji
     varchar region
-    bigint base_price "micro"
-    bigint slope "micro per share"
-    bigint supply "whole shares"
-    bigint reserve "micro locked in curve"
+    bigint base_price
+    bigint slope
+    bigint supply
+    bigint reserve
+    boolean is_sponsored
+    varchar sponsor_name
+    varchar sponsor_type
+    text origin_story
     timestamptz created_at
   }
   HOLDINGS {
     uuid user_id PK
     uuid asset_id PK
     bigint qty
-    bigint cost_basis "micro, proportional on sells"
+    bigint cost_basis
     timestamptz updated_at
   }
   TRADES {
@@ -103,43 +171,47 @@ erDiagram
     uuid asset_id
     varchar side
     bigint qty
-    bigint price "avg micro per share"
-    bigint total "micro"
+    bigint price
+    bigint total
     timestamptz created_at
   }
-  USERS ||--o{ HOLDINGS : holds
-  ASSETS ||--o{ HOLDINGS : held_as
-  USERS ||--o{ TRADES : prints
-  ASSETS ||--o{ TRADES : traded
 ```
 
-DSQL-deliberate decisions:
+Design choices for DSQL:
 
-| Decision | Reason |
+| Choice | Reason |
 |---|---|
-| UUIDs minted in the app, no `SERIAL` | DSQL has no sequences; also removes a coordination point |
-| No foreign keys | DSQL doesn't enforce them; integrity lives in the settlement transaction, which is the only write path |
-| Composite PK on `holdings(user_id, asset_id)` | Two concurrent *first* buys of the same pair conflict on the PK; one aborts into the retry path and lands on the UPDATE branch — an OCC-safe upsert without `ON CONFLICT` gymnastics |
-| `CREATE INDEX ASYNC` on DSQL | DSQL builds secondary indexes as background jobs; `scripts/db-setup.ts` rewrites the portable schema automatically |
-| `granted` column on users | Makes "Σ minted" a `SUM()` instead of an event-sourcing replay — the audit is one SQL statement |
+| App-minted UUIDs | Avoids sequences and removes a global coordination point. |
+| No foreign keys | DSQL does not enforce them; the settlement transaction is the integrity boundary. |
+| Composite `holdings(user_id, asset_id)` key | First-buy races become deterministic OCC conflicts. |
+| `users.granted` | Makes total minted money a direct aggregate. |
+| `CREATE INDEX ASYNC` | Required for Aurora DSQL secondary index creation. |
 
-## Proof of Solvency
+## Invariants
 
-`/api/integrity` recomputes from live data:
+HYPE verifies two exact invariants:
 
-1. `Σ cash + Σ reserve === Σ granted` — drift reported in micro-units (must be `0`).
-2. For every asset: `reserve === s·base + slope·s(s−1)/2`.
+```txt
+sum(user.cash) + sum(asset.reserve) === sum(user.granted)
+asset.reserve === reserveAt(base, slope, supply)
+```
 
-The `/ledger` page polls it every 2 seconds and renders the equation with both the $H view and the raw micro-unit integers — so the audience can watch the audit hold while `npm run sim:pump` floods the engine.
+Because money is stored as integer micro-units, the check is exact. There is no floating
+point tolerance and no reconciliation process.
 
-## Environment matrix
+## Product Layers On Top Of The Ledger
 
-| Variable | Local dev | Aurora DSQL |
-|---|---|---|
-| `DATABASE_URL` | `postgresql://hype:hype@localhost:5432/hype` | *(unset)* |
-| `DSQL_ENDPOINT` | — | `xxxx.dsql.us-east-1.on.aws` |
-| `AWS_REGION` / keys | — | required (IAM token signing) |
-| `DSQL_USER` | — | `admin` |
-| `SESSION_SECRET` | any string | long random string |
+The current app builds several read-only or analytics surfaces on top of the exchange:
 
-`DATABASE_URL`, when present, wins — that's the explicit dev override.
+- Market board filters and badges.
+- Market depth / slippage simulator.
+- HYPE Pro analytics.
+- Trend Scout Score.
+- Sponsored IPOs.
+- Creator Revenue Engine / royalty simulation.
+- Brand Campaign Missions.
+- Culture Leagues.
+- Creator and brand profiles.
+
+These layers are intentionally separated from settlement. They make the product feel
+venture-scale without changing the ledger math.
