@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#FFB300"/>
+    </marker>
+    <marker id="arrowdim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8B93A3"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="680" fill="#0B0E13"/>
+
+  <!-- Title -->
+  <text x="40" y="52" fill="#FFB300" font-size="30" font-weight="800" letter-spacing="1">HYPE — The Culture Exchange · Architecture</text>
+  <text x="40" y="78" fill="#8B93A3" font-size="14">H0 Hackathon · Track 3 Million-scale · Vercel + Amazon Aurora DSQL</text>
+
+  <!-- BROWSER -->
+  <rect x="40" y="110" width="300" height="500" rx="12" fill="#10141C" stroke="#1E2532" stroke-width="2"/>
+  <text x="60" y="142" fill="#EAE6DA" font-size="17" font-weight="700">BROWSER</text>
+  <text x="60" y="162" fill="#8B93A3" font-size="12">Instant play — no signup</text>
+
+  <rect x="60" y="180" width="260" height="118" rx="8" fill="#151A24" stroke="#1E2532"/>
+  <text x="76" y="206" fill="#FFB300" font-size="13" font-weight="700">Next.js 15 UI — amber terminal</text>
+  <text x="76" y="228" fill="#EAE6DA" font-size="12">Market board · Asset pages · Trade desk</text>
+  <text x="76" y="246" fill="#EAE6DA" font-size="12">Portfolio · Leaderboard · Ticker tape</text>
+  <text x="76" y="264" fill="#EAE6DA" font-size="12">Ledger — live Proof of Solvency</text>
+  <text x="76" y="286" fill="#8B93A3" font-size="11">SWR polling: market 4s · audit 2s</text>
+
+  <rect x="60" y="316" width="260" height="76" rx="8" fill="#151A24" stroke="#1E2532"/>
+  <text x="76" y="342" fill="#FFB300" font-size="13" font-weight="700">Exact client preview</text>
+  <text x="76" y="362" fill="#EAE6DA" font-size="12">Same BigInt curve math as server —</text>
+  <text x="76" y="380" fill="#EAE6DA" font-size="12">quote matches settlement to the micro</text>
+
+  <rect x="60" y="412" width="260" height="64" rx="8" fill="#151A24" stroke="#1E2532"/>
+  <text x="76" y="438" fill="#FFB300" font-size="13" font-weight="700">Session cookie</text>
+  <text x="76" y="458" fill="#EAE6DA" font-size="12">HMAC-SHA256 signed · stateless</text>
+
+  <!-- VERCEL -->
+  <rect x="420" y="110" width="340" height="500" rx="12" fill="#10141C" stroke="#1E2532" stroke-width="2"/>
+  <text x="440" y="142" fill="#EAE6DA" font-size="17" font-weight="700">VERCEL — serverless</text>
+  <text x="440" y="162" fill="#8B93A3" font-size="12">Next.js API routes (Node runtime)</text>
+
+  <rect x="440" y="180" width="300" height="96" rx="8" fill="#151A24" stroke="#1E2532"/>
+  <text x="456" y="206" fill="#FFB300" font-size="13" font-weight="700">Read APIs</text>
+  <text x="456" y="226" fill="#EAE6DA" font-size="12">/api/market · /api/asset/:symbol</text>
+  <text x="456" y="244" fill="#EAE6DA" font-size="12">/api/portfolio · /api/leaderboard</text>
+  <text x="456" y="262" fill="#EAE6DA" font-size="12">/api/integrity — solvency audit</text>
+
+  <rect x="440" y="296" width="300" height="170" rx="8" fill="#151A24" stroke="#FFB300" stroke-width="1.5"/>
+  <text x="456" y="322" fill="#FFB300" font-size="13" font-weight="700">SETTLEMENT ENGINE  /api/trade</text>
+  <text x="456" y="344" fill="#EAE6DA" font-size="12">Integer ledger — BigInt micro-units</text>
+  <text x="456" y="362" fill="#EAE6DA" font-size="12">Linear bonding curve, closed-form cost</text>
+  <text x="456" y="380" fill="#EAE6DA" font-size="12">1 ACID txn: cash · supply · reserve ·</text>
+  <text x="456" y="398" fill="#EAE6DA" font-size="12">holding upsert · trade print</text>
+  <text x="456" y="422" fill="#2CE08B" font-size="12" font-weight="700">OCC retry on SQLSTATE 40001</text>
+  <text x="456" y="440" fill="#8B93A3" font-size="11">fresh read + recompute · backoff+jitter · max 8</text>
+
+  <rect x="440" y="486" width="300" height="96" rx="8" fill="#151A24" stroke="#1E2532"/>
+  <text x="456" y="512" fill="#FFB300" font-size="13" font-weight="700">Ops scripts (tsx)</text>
+  <text x="456" y="532" fill="#EAE6DA" font-size="12">db:setup — rewrites INDEX → INDEX ASYNC</text>
+  <text x="456" y="550" fill="#EAE6DA" font-size="12">db:seed — 12 LATAM assets, 72h history</text>
+  <text x="456" y="568" fill="#EAE6DA" font-size="12">sim:pump — the Insolvency Test</text>
+
+  <!-- AWS -->
+  <rect x="840" y="110" width="320" height="500" rx="12" fill="#10141C" stroke="#1E2532" stroke-width="2"/>
+  <text x="860" y="142" fill="#EAE6DA" font-size="17" font-weight="700">AWS</text>
+
+  <rect x="860" y="162" width="280" height="240" rx="8" fill="#151A24" stroke="#FFB300" stroke-width="2"/>
+  <text x="876" y="190" fill="#FFB300" font-size="15" font-weight="800">Amazon Aurora DSQL</text>
+  <text x="876" y="214" fill="#EAE6DA" font-size="12">PostgreSQL-compatible · serverless</text>
+  <text x="876" y="234" fill="#EAE6DA" font-size="12">Active-active, multi-region writes</text>
+  <text x="876" y="254" fill="#EAE6DA" font-size="12">Strong snapshot isolation (OCC)</text>
+  <text x="876" y="274" fill="#EAE6DA" font-size="12">IAM token auth — no DB passwords</text>
+  <text x="876" y="300" fill="#8B93A3" font-size="11">Tables: users · assets · holdings · trades</text>
+  <text x="876" y="318" fill="#8B93A3" font-size="11">No sequences · no FKs · composite PK</text>
+  <text x="876" y="336" fill="#8B93A3" font-size="11">upsert path designed for OCC</text>
+  <text x="876" y="362" fill="#2CE08B" font-size="12" font-weight="700">Σ cash + Σ reserve = Σ minted</text>
+  <text x="876" y="380" fill="#2CE08B" font-size="12" font-weight="700">drift = 0 micro, under concurrency</text>
+
+  <rect x="860" y="422" width="280" height="80" rx="8" fill="#151A24" stroke="#1E2532"/>
+  <text x="876" y="448" fill="#FFB300" font-size="13" font-weight="700">@aws-sdk/dsql-signer</text>
+  <text x="876" y="468" fill="#EAE6DA" font-size="12">Mints short-lived IAM auth token</text>
+  <text x="876" y="486" fill="#EAE6DA" font-size="12">per connection (pg async password)</text>
+
+  <rect x="860" y="522" width="280" height="60" rx="8" fill="#151A24" stroke="#1E2532"/>
+  <text x="876" y="548" fill="#FFB300" font-size="13" font-weight="700">IAM policy</text>
+  <text x="876" y="568" fill="#EAE6DA" font-size="12">dsql:DbConnectAdmin on the cluster</text>
+
+  <!-- ARROWS -->
+  <line x1="340" y1="240" x2="420" y2="240" stroke="#FFB300" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="346" y="228" fill="#8B93A3" font-size="11">HTTPS JSON</text>
+
+  <line x1="340" y1="380" x2="420" y2="380" stroke="#FFB300" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="346" y="368" fill="#8B93A3" font-size="11">POST trade</text>
+
+  <line x1="760" y1="240" x2="840" y2="240" stroke="#FFB300" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="766" y="228" fill="#8B93A3" font-size="11">SQL reads</text>
+
+  <line x1="760" y1="380" x2="840" y2="320" stroke="#FFB300" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="752" y="356" fill="#8B93A3" font-size="11">ACID txn</text>
+
+  <line x1="840" y1="350" x2="760" y2="410" stroke="#8B93A3" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowdim)"/>
+  <text x="742" y="432" fill="#8B93A3" font-size="11">40001 conflict → engine retries</text>
+
+  <text x="40" y="652" fill="#8B93A3" font-size="12">Insolvency Test (verified): 200 concurrent trades · 24 traders · ~240 tx/s · 55 OCC conflicts retried · drift 0 micro · both invariants exact</text>
+</svg>

@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hype
+      POSTGRES_PASSWORD: hype
+      POSTGRES_DB: hype
+    ports:
+      - "5432:5432"
+    volumes:
+      - hype_pgdata:/var/lib/postgresql/data
+volumes:
+  hype_pgdata:

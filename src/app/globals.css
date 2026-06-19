@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #0b0e13;
+  color: #eae6da;
+}
+
+::selection {
+  background: #ffb300;
+  color: #0b0e13;
+}
+
+/* faint CRT scanlines over the whole terminal */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 179, 0, 0.022) 0px,
+    rgba(255, 179, 0, 0.022) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #ffb300;
+  outline-offset: 2px;
+}
+
+@layer components {
+  .panel {
+    @apply bg-panel border border-line rounded-lg;
+  }
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.22em] text-amberdim;
+  }
+  .btn-amber {
+    @apply bg-amber text-ink font-mono text-sm font-semibold px-4 py-2 rounded
+      hover:brightness-110 active:translate-y-px transition disabled:opacity-40
+      disabled:pointer-events-none;
+  }
+  .btn-ghost {
+    @apply border border-line text-paper font-mono text-sm px-4 py-2 rounded
+      hover:border-amber hover:text-amber transition;
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "hype-culture-exchange",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HYPE — The Culture Exchange. A planet-scale stock market for culture, on Amazon Aurora DSQL + Vercel.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:setup": "tsx scripts/db-setup.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "sim:pump": "tsx scripts/simulate.ts --mode pump",
+    "sim:ambient": "tsx scripts/simulate.ts --mode ambient",
+    "verify:math": "tsx scripts/verify-math.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/dsql-signer": "^3.750.0",
+    "@fontsource/ibm-plex-mono": "^5.1.0",
+    "@fontsource/space-grotesk": "^5.1.0",
+    "@fontsource/unbounded": "^5.1.0",
+    "next": "^15.3.0",
+    "pg": "^8.13.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "swr": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.7",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
