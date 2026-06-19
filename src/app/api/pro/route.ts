@@ -18,6 +18,8 @@ interface AssetRow {
   reserve: string;
   is_sponsored: boolean | null;
   sponsor_name: string | null;
+  sponsor_type: string | null;
+  creator_handle: string | null;
 }
 
 function clamp(n: number, min = 0, max = 100): number {
@@ -35,7 +37,7 @@ export async function GET() {
 
   const assets = await q<AssetRow>(
     `SELECT id, symbol, name, category, emoji, region, base_price, slope, supply, reserve,
-            is_sponsored, sponsor_name
+            is_sponsored, sponsor_name, sponsor_type, creator_handle
      FROM assets`
   );
   const totals = await q<{ volume: string; trades: string }>(
@@ -126,6 +128,12 @@ export async function GET() {
   const brandOpportunityScore = Math.round(
     clamp(35 + sponsoredAssets.length * 8 + liquidityScore * 0.25 + breadthScore * 0.2 + momentumScore * 0.15)
   );
+  const profileKeys = new Set<string>();
+  for (const a of assets) {
+    if (a.sponsor_name) profileKeys.add(a.sponsor_name.toLowerCase());
+    if (a.creator_handle) profileKeys.add(a.creator_handle.toLowerCase());
+  }
+  const simulatedCampaignValue = totalVolume / 25n + BigInt(Math.max(sponsoredAssets.length, 1)) * 2_500_000n;
 
   return NextResponse.json({
     metrics: {
@@ -168,6 +176,19 @@ export async function GET() {
         sponsorName: topSponsored.sponsorName,
         totalVolume: microToFloat(topSponsored.totalVolume),
       },
+    },
+    platform: {
+      activeCampaigns: Math.max(sponsoredAssets.length, Math.min(assets.length, 6)),
+      sponsoredLeagues: 4,
+      creatorBrandProfiles: profileKeys.size,
+      simulatedCampaignValue: microToFloat(simulatedCampaignValue),
+      channels: [
+        "Sponsored IPOs",
+        "HYPE Pro subscriptions",
+        "Brand campaign missions",
+        "Creator royalty analytics",
+        "Culture leagues",
+      ],
     },
     at: new Date().toISOString(),
   });
