@@ -1,58 +1,112 @@
-# Guion del video demo — HYPE (≤ 3:00)
+# HYPE Demo Video Script - under 3 minutes
 
-> Requisitos del brief cubiertos: explicar el problema, para quién es y por qué importa; mostrar la app funcionando; explicar qué base de datos AWS usa y cómo.
->
-> Preparación antes de grabar:
-> 1. App desplegada en Vercel apuntando a Aurora DSQL, con seed corrido.
-> 2. Dos ventanas listas: navegador (pestaña `/ledger` + pestaña `/market`) y terminal con `npm run sim:pump` escrito sin ejecutar.
-> 3. Opcional: `npm run sim:ambient` corriendo de fondo para que el tape se mueva solo.
+Goal: show the product, the monetization thesis, and why Aurora DSQL matters. Keep the
+video fast and concrete.
 
----
+## Setup Before Recording
 
-## 0:00 – 0:25 · El problema (cámara o voz sobre el landing)
+- Open the live app: https://hype-rust.vercel.app
+- Keep tabs ready: `/`, `/market`, `/asset/CORRIDO`, `/ledger`, `/list`, `/pro`,
+  `/campaigns`, `/leagues`.
+- Keep a terminal ready with `npm run sim:pump`.
+- Optional: show `docs/architecture.svg` and the AWS Aurora DSQL console screenshot.
 
-**[Pantalla: landing de HYPE, hero "Culture moves markets. Now it has one."]**
+## 0:00 - 0:20 - Problem
 
-> "La cultura de internet ya se comporta como un mercado: un sonido de Medellín explota, un meme mexicano sube y se desploma, una tendencia hace ganadores y perdedores. Pero nadie puede *operar* ese mercado. HYPE es eso: una bolsa de valores global para la cultura, donde cualquier persona —sin registro— recibe 10,000 $H y empieza a tradear memes, sonidos y tendencias de Latinoamérica."
+Screen: home page.
 
-## 0:25 – 0:55 · La app funcionando (demo en vivo)
+Voiceover:
 
-**[Pantalla: /market → click en CORRIDO → comprar 25 shares]**
+> Internet culture already behaves like a market. A sound breaks out, a meme peaks,
+> a fashion signal jumps from niche to mainstream, and brands spend real money trying
+> to understand it too late. HYPE makes that market visible and tradeable.
 
-> "Cada activo cotiza sobre una bonding curve transparente: comprar emite acciones y sube el precio; vender las quema y lo baja. Miren el preview: el costo que ve el usuario se calcula con la misma matemática entera del motor de liquidación — coincide al micro. Compro… y la operación queda asentada. El tape, el portafolio y el leaderboard se actualizan en vivo."
+## 0:20 - 0:45 - Product
 
-**[Mostrar 3 segundos el portfolio con la posición nueva]**
+Screen: `/market`.
 
-## 0:55 – 1:30 · El problema técnico real (por qué importa)
+Voiceover:
 
-**[Pantalla: /ledger — la ecuación de Proof of Solvency en verde]**
+> This is HYPE: The Culture Exchange. Every visitor gets 10,000 play-money $H. The
+> board shows cultural assets, live prices, 24-hour movement, volume, sponsored IPOs,
+> filters, badges, and sparklines. It feels like an exchange, but the asset class is
+> internet culture.
 
-> "Ahora lo difícil. Una bolsa para todo internet significa miles de trades concurrentes mutando las mismas filas calientes: billeteras, supplies, reservas. En la mayoría de demos, ahí se filtra dinero. HYPE lo audita en público: esta página recalcula cada 2 segundos la ecuación —la suma del cash de todos los usuarios más las reservas de todas las curvas debe ser igual a cada $H jamás emitido. Exacto. No aproximado: todo el ledger son enteros."
+## 0:45 - 1:15 - Asset Terminal And Trade
 
-## 1:30 – 2:15 · El Insolvency Test (el momento WOW)
+Screen: `/asset/CORRIDO`.
 
-**[Pantalla dividida: /ledger a la izquierda, terminal a la derecha. Ejecutar `npm run sim:pump`]**
+Voiceover:
 
-> "Vamos a intentar romperla. Este script dispara 200 trades concurrentes desde 24 bots contra la base de datos… Mientras corre, miren el contador de drift: cero micro-unidades. El reporte muestra decenas de conflictos de concurrencia — y ahí está la clave: cada conflicto fue detectado y reintentado, no ignorado."
+> Each asset trades on a transparent bonding curve. Buying mints shares and moves the
+> price up. Selling burns shares and moves it down. The trade panel previews curve
+> cost, average fill, and projected spot. The Market Depth simulator shows slippage
+> before you trade, and it is preview-only: no database write, no hidden order route.
 
-**[Señalar en el terminal: "OCC conflicts retried" y "drift 0 micro · SOLVENT"]**
+Optional action: buy a small quantity if you want a live fill.
 
-## 2:15 – 2:50 · La base de datos AWS (cómo y por qué)
+## 1:15 - 1:45 - Proof Of Solvency
 
-**[Pantalla: consola AWS con el cluster de Aurora DSQL + diagrama de arquitectura]**
+Screen: `/ledger`.
 
-> "Esto es **Amazon Aurora DSQL** haciendo exactamente aquello para lo que fue construida. Cada trade es una transacción ACID con snapshot isolation fuerte: cuando dos trades chocan sobre el mismo activo, DSQL aborta uno con SQLSTATE 40001 y mi motor lo reintenta con una lectura fresca — sin locks, sin un master de escritura. Y como DSQL es activo-activo multi-región y serverless, un trader en Bogotá y uno en Tokio escriben sobre la misma base lógica, y los picos virales son el modelo de negocio, no una falla. El esquema está diseñado para DSQL: sin secuencias, sin foreign keys, llaves compuestas pensadas para el camino de reintento, e índices creados con CREATE INDEX ASYNC."
+Voiceover:
 
-## 2:50 – 3:00 · Cierre
+> The real demo is the ledger. HYPE stores money as BigInt micro-units, not floats.
+> This page recomputes the whole exchange from Aurora DSQL every few seconds. User
+> cash plus curve reserves must equal every $H ever minted, and each reserve must
+> match the bonding curve formula. The result is exact: drift 0 micro.
 
-**[Pantalla: /ledger en verde + logo]**
+## 1:45 - 2:10 - Concurrency Test
 
-> "HYPE: dinero de juguete, garantías de base de datos reales. El ledger nunca miente — porque Aurora DSQL no lo deja mentir. Gracias."
+Screen: split terminal and `/ledger`. Run `npm run sim:pump`.
 
----
+Voiceover:
 
-### Notas de grabación
+> Now we try to break it. This script fires concurrent trades from bots against the
+> real database. Aurora DSQL detects optimistic-concurrency conflicts on hot rows.
+> The engine rolls back, waits with jitter, retries from a fresh read, and recomputes
+> the price. Conflicts are expected; ledger drift is not.
 
-- Hablar al ritmo del guion da ~2:50; ensayar una pasada con cronómetro.
-- El screenshot de la consola AWS que exige el submission puede ser el mismo plano del minuto 2:15.
-- Si el pump termina muy rápido en cámara, correr `npm run sim:pump -- --trades 400`.
+Point at the terminal lines for OCC retries, drift 0 micro, ledger balanced, and curve
+consistent.
+
+## 2:10 - 2:35 - Monetization Layer
+
+Screen: `/list`, then `/pro`.
+
+Voiceover:
+
+> HYPE is not only a meme market. It is the monetization layer for internet culture.
+> Creators and brands can launch Trend IPOs and sponsored cultural markets. HYPE Pro
+> turns the trading behavior into cultural intelligence: momentum, 24-hour volume,
+> volatility, brand readiness, creator monetization potential, and opportunity scores.
+
+## 2:35 - 2:50 - Campaigns And Leagues
+
+Screen: `/campaigns`, then `/leagues`.
+
+Voiceover:
+
+> The future business is B2B: sponsored IPOs, brand campaign missions, scout leagues,
+> creator royalty analytics, and data products for agencies, brands, creators, and
+> trend researchers.
+
+## 2:50 - 3:00 - Close
+
+Screen: `/ledger` green.
+
+Voiceover:
+
+> HYPE: The Culture Exchange. Play money. Real database guarantees. The ledger never
+> lies.
+
+## Required Visual Proof Checklist
+
+- Home page.
+- Market board.
+- Asset terminal with CORRIDO.
+- Market Depth.
+- Proof of Solvency at drift 0 micro.
+- Terminal running `npm run sim:pump`.
+- HYPE Pro.
+- AWS Aurora DSQL console or architecture diagram.

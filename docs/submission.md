@@ -1,43 +1,161 @@
-# H0 Hackathon — Submission package (copy/paste ready)
+# H0 Hackathon Submission - HYPE
 
 ## Title
-**HYPE — The Culture Exchange**
 
-## Tagline (≤ 140 chars)
-A planet-scale stock market for memes, sounds and trends — settled on Aurora DSQL, with a live Proof of Solvency that never drifts.
+HYPE - The Culture Exchange
 
-## Track
-**Track 3: Million-scale** (architecture and concurrency story built for it). Secondary fit: Track 1 B2C.
+## Short Description
 
-## Elevator pitch (short description)
-Culture already behaves like a market — HYPE makes it tradeable. Anyone gets 10,000 $H instantly (no signup) and trades cultural assets on transparent bonding curves. The hard part is the ledger: thousands of concurrent trades mutating the same hot rows. HYPE's settlement engine runs every trade as a strongly-consistent ACID transaction on **Amazon Aurora DSQL**, treats OCC conflicts (SQLSTATE 40001) as normal operation with automatic retry, and proves the result in public: a live audit page recomputes `Σ user cash + Σ curve reserves = Σ minted` every 2 seconds — and the drift is **0 micro-units, exactly**, even while a stress script fires hundreds of concurrent trades at it.
+A culture exchange for memes, sounds, creators, and trends, settled on Amazon Aurora
+DSQL with a public Proof of Solvency that stays at drift 0 micro.
 
-## Full description
+## Long Description
 
-**The problem & who it's for.** Internet culture moves billions in attention but there's no venue to take a position on it. HYPE is a B2C game-market for culture fans (starting with LATAM: corridos, cumbia, capybaras, telenovela-core) — and underneath, a serious demonstration of how to build an exchange-grade ledger on the zero stack.
+HYPE is a trading-style market for internet culture. Visitors get 10,000 play-money
+$H instantly and trade cultural assets such as sounds, memes, AI trends, sports
+moments, fashion signals, and creator narratives. Each asset uses a transparent
+bonding curve: buying mints shares and raises the spot price; selling burns shares
+and lowers the price.
 
-**How it works.** Each asset trades on a linear bonding curve `P(s) = base + slope·s`. Buying mints shares (price rises), selling burns them (price falls); the curve itself is the always-available market maker. A disclosed 1% sell fee routes to the treasury — the monetization line. All money is integer micro-units (BigInt end to end), so the two solvency invariants hold exactly, not within epsilon.
+The product thesis is that HYPE is not only a meme market. It is a monetization layer
+for internet culture. The consumer market creates liquidity and behavioral signal.
+HYPE Pro, sponsored IPOs, campaign missions, culture leagues, creator royalty
+analytics, and scout reputation turn that signal into a future B2B business for
+creators, agencies, brands, and trend researchers.
 
-**Why Aurora DSQL — deliberately.** An exchange needs: (1) atomic multi-row settlement; (2) correctness under write contention on hot rows; (3) global active-active writes; (4) elasticity for viral spikes. DSQL provides all four natively: PostgreSQL-compatible ACID transactions, strong snapshot isolation with optimistic concurrency control, multi-region active-active, serverless scaling, IAM auth. The schema is shaped for DSQL: no sequences (app-minted UUIDs), no FKs (integrity enforced by the settlement transaction), composite PK on holdings so concurrent first-buys resolve through the OCC retry path, `CREATE INDEX ASYNC` for secondary indexes. The engine recomputes prices from a fresh read on every retry, so contention can never settle a trade at a stale price.
+The technical thesis is that a market is only credible if the ledger cannot drift.
+HYPE stores all money as BigInt micro-units and settles every trade as an ACID
+transaction on Amazon Aurora DSQL. When concurrent trades hit the same hot asset,
+Aurora DSQL detects optimistic-concurrency conflicts and the engine retries the
+whole transaction from a fresh read. The public `/ledger` page recomputes the full
+exchange equation from live data:
 
-**The demo that matters.** `npm run sim:pump` fires 200 concurrent trades from 24 bots (~240 tx/s in testing, 55 OCC conflicts retried) while the public `/ledger` page re-audits the whole exchange every 2 seconds. Drift: 0 micro. Every time.
+```txt
+sum(user.cash) + sum(asset.reserve) === sum(user.granted)
+asset.reserve === reserveAt(base, slope, supply)
+```
 
-**Built with:** Next.js 15, React 19, TypeScript, Tailwind, SWR, node-postgres, @aws-sdk/dsql-signer, Amazon Aurora DSQL, Vercel.
+The target result is exact: drift 0 micro, ledger balanced, curve consistent.
 
-## Submission checklist
+## Problem
 
-- [ ] Public repo URL: `https://github.com/jpablortiz96/hype`
-- [ ] Live deployment URL (Vercel): `https://hype-<your-slug>.vercel.app`
-- [ ] Vercel Team ID: *(Vercel dashboard → Settings → General → Team ID)*
-- [ ] Demo video ≤ 3 min (script: `docs/demo-script.md`) — uploaded to YouTube, public
-- [ ] Architecture diagram: `docs/architecture.svg` (export PNG if the form requires)
-- [ ] **Screenshot of AWS Console showing the Aurora DSQL cluster** (take it on the cluster detail page, region visible)
-- [ ] Env vars set in Vercel: `DSQL_ENDPOINT`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `DSQL_USER`, `SESSION_SECRET`
+Internet culture moves faster than brand budgets, research reports, and platform
+analytics. Creators, labels, agencies, and brands want to know what is moving before
+it becomes obvious. Fans and scouts already understand these signals, but there is
+no market where attention can be discovered, priced, ranked, and eventually monetized.
 
-## Bonus content post (publish with #H0Hackathon)
+## Audience
 
-> Idea for LinkedIn/X (ES or EN): a 60–90s clip of the split screen — `sim:pump` flooding the engine on the right, the Proof of Solvency equation staying green at drift 0 on the left. Caption draft:
->
-> "Construí una bolsa de valores para la cultura de internet 🇨🇴📈 — y la parte difícil no fue el juego, fue el ledger. 200 trades concurrentes, 55 conflictos de concurrencia reintentados, drift: 0 micro-unidades. Amazon Aurora DSQL + Vercel. El ledger nunca miente. Created for the purposes of entering the #H0Hackathon."
->
-> (Keep the literal sentence "Created for the purposes of entering this hackathon" or the hashtag variant — the rules require disclosure on bonus content.)
+- Culture traders and fans who want to play a live market.
+- Creators who want proof that their signal is moving.
+- Agencies and brands looking for early cultural intelligence.
+- Trend researchers who need a real-time behavioral dataset.
+- Scouts who can identify momentum before mainstream adoption.
+
+## Why Track 3: Million-Scale Global App
+
+HYPE is designed for viral concurrency. During a cultural spike, many users trade the
+same asset simultaneously. That creates exactly the hot-row write contention that
+breaks weak demos: wallets, supplies, reserves, holdings, and trade tape entries all
+need to stay consistent.
+
+Aurora DSQL is the right fit because it provides:
+
+- PostgreSQL-compatible ACID transactions.
+- Strong snapshot isolation and optimistic concurrency control.
+- Active-active architecture for global write patterns.
+- Serverless operation.
+- IAM authentication instead of static database passwords.
+
+The app treats OCC conflicts as normal operation. Conflicts are retried with backoff
+and jitter; prices are recomputed from fresh reads; non-retryable errors are not hidden.
+
+## Live Links
+
+- Live demo: https://hype-rust.vercel.app
+- GitHub: https://github.com/jpablortiz96/hype
+- Judges guide: `docs/JUDGES_START_HERE.md`
+- Architecture: `docs/architecture.md`
+- Demo script: `docs/demo-script.md`
+
+## Product Walkthrough
+
+1. Open `/` to see the culture exchange thesis.
+2. Open `/market` to see the culture market board, filters, badges, volume, and sparklines.
+3. Open `/asset/CORRIDO` to see the asset terminal, chart, trade desk, and Market Depth simulator.
+4. Open `/ledger` to see live Proof of Solvency from Aurora DSQL.
+5. Open `/list` to launch a Trend IPO or sponsored IPO simulation.
+6. Open `/pro` to see the HYPE Pro Cultural Intelligence Terminal.
+7. Open `/portfolio` to see Trend Scout Score.
+8. Open `/campaigns` and `/leagues` to see monetization surfaces.
+
+## Monetization Path
+
+This is a path to a $100M-scale opportunity, not a claim that HYPE has current revenue
+or valuation. Future monetization surfaces include:
+
+- HYPE Pro subscriptions.
+- Sponsored IPO placement.
+- Brand Campaign Missions.
+- Culture League sponsorships.
+- Creator royalty analytics.
+- Data/API licensing.
+- Enterprise dashboards.
+- Premium scout reputation marketplace.
+
+## Technical Highlights
+
+- Next.js App Router on Vercel.
+- Amazon Aurora DSQL with IAM auth via `@aws-sdk/dsql-signer`.
+- `pg` driver with local Postgres compatibility.
+- Node.js API routes with `force-dynamic`.
+- BigInt micro-unit settlement math.
+- Linear bonding curve with exact reserve formula.
+- OCC retry handling for `40001`, `40P01`, `OC000`, and DSQL change conflicts.
+- Rollback before retry.
+- Exponential backoff with jitter and cap.
+- `CREATE INDEX ASYNC` for DSQL setup.
+- Public `/ledger` proof.
+- `npm run verify:math` for randomized invariant proof.
+- `npm run sim:pump` for real concurrent trade pressure.
+
+## Screenshots
+
+| Requirement | File |
+|---|---|
+| Home | `docs/submission-assets/01-home.png` |
+| Market board | `docs/submission-assets/02-market.png` |
+| Asset terminal | `docs/submission-assets/03-asset-corrido.png` |
+| Proof of Solvency | `docs/submission-assets/04-ledger-proof.png` |
+| HYPE Pro | `docs/submission-assets/05-pro-analytics.png` |
+| List a Trend | `docs/submission-assets/06-list-trend.png` |
+| Campaigns | `docs/submission-assets/07-campaigns.png` |
+| Leagues | `docs/submission-assets/08-leagues.png` |
+| Aurora DSQL console | `docs/aws-console-dsql.png` |
+| Concurrent pump terminal | `docs/submission-assets/05-sim-pump-dsql-terminal.png` |
+
+Still optional before final submission:
+
+- Add a Vercel dashboard screenshot if the form requests deployment evidence.
+- Add the final public demo video URL.
+
+## Judge Walkthrough Script
+
+Use the live app and keep `/ledger` visible.
+
+1. "HYPE is a culture exchange: play money, real database guarantees."
+2. Show `/market` and explain cultural assets, volume, sponsored IPOs, and filters.
+3. Open `/asset/CORRIDO`; show chart, trade panel, and Market Depth preview.
+4. Show `/ledger`; point to drift 0 micro and curve consistency.
+5. Mention `npm run sim:pump`: concurrent trades, OCC retries, invariant proof.
+6. Show `/pro`, `/campaigns`, and `/leagues` as the monetization path.
+7. Close with: "Play money. Real database guarantees. The ledger never lies."
+
+## Next Steps
+
+- Add paid HYPE Pro tiers.
+- Add exportable trend intelligence reports.
+- Add brand mission creation flow.
+- Add scout reputation marketplace.
+- Add regional DSQL deployment story and read-affinity strategy.
+- Add more automated test coverage around trade settlement and listing.
