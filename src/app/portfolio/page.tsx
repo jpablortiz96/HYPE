@@ -7,6 +7,7 @@ import { fetcher, money, pct, trendClass } from "@/lib/fmt";
 
 export default function PortfolioPage() {
   const { data, mutate } = useSWR("/api/portfolio", fetcher, { refreshInterval: 4000 });
+  const { data: scout } = useSWR("/api/scout", fetcher, { refreshInterval: 5000 });
   const { mutate: globalMutate } = useSWRConfig();
   const [editing, setEditing] = useState(false);
   const [handle, setHandle] = useState("");
@@ -98,6 +99,57 @@ export default function PortfolioPage() {
         <div className="panel p-4">
           <p className="eyebrow">Funded with</p>
           <p className="font-mono text-xl tnum text-mut">{money(data.startingCash)} $H</p>
+        </div>
+      </div>
+
+      <div className="panel p-5 mb-6">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+          <div>
+            <p className="eyebrow">Trend Scout Score</p>
+            <h2 className="font-display font-semibold text-2xl mt-1">
+              {scout?.label ?? "Rookie Scout"}
+            </h2>
+            <p className="mt-2 text-sm text-mut max-w-2xl">
+              Top scouts could sell cultural insight to brands, agencies, and creators. This score
+              reads your trading history, early entries, breadth, and live portfolio momentum.
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="font-mono text-5xl text-amber tnum">{scout?.score ?? 0}</p>
+            <p className="font-mono text-xs text-mut">/ 100</p>
+          </div>
+        </div>
+        <div className="h-2 rounded bg-ink border border-line overflow-hidden mb-4">
+          <div className="h-full bg-amber" style={{ width: `${scout?.score ?? 0}%` }} />
+        </div>
+        <div className="grid sm:grid-cols-4 gap-3 font-mono text-sm">
+          <div className="border border-line rounded p-3 bg-ink">
+            <p className="text-[10px] uppercase tracking-widest text-amberdim">Early entries</p>
+            <p className="mt-2 text-xl tnum">{scout?.earlyEntries ?? 0}</p>
+          </div>
+          <div className="border border-line rounded p-3 bg-ink">
+            <p className="text-[10px] uppercase tracking-widest text-amberdim">Trends traded</p>
+            <p className="mt-2 text-xl tnum">{scout?.trendsTraded ?? 0}</p>
+          </div>
+          <div className="border border-line rounded p-3 bg-ink">
+            <p className="text-[10px] uppercase tracking-widest text-amberdim">Portfolio momentum</p>
+            <p className={`mt-2 text-xl tnum ${trendClass(scout?.portfolioMomentum)}`}>
+              {pct(scout?.portfolioMomentum)}
+            </p>
+          </div>
+          <div className="border border-line rounded p-3 bg-ink">
+            <p className="text-[10px] uppercase tracking-widest text-amberdim">Best position</p>
+            {scout?.bestPosition ? (
+              <p className="mt-2 text-xl tnum">
+                <span className="text-amber">{scout.bestPosition.emoji} {scout.bestPosition.symbol}</span>{" "}
+                <span className={trendClass(scout.bestPosition.pnlPct)}>
+                  {pct(scout.bestPosition.pnlPct, 1)}
+                </span>
+              </p>
+            ) : (
+              <p className="mt-2 text-xl text-mut">None yet</p>
+            )}
+          </div>
         </div>
       </div>
 
