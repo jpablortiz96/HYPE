@@ -61,7 +61,7 @@ export async function q<T = any>(text: string, params: any[] = []): Promise<T[]>
 
 /** Aurora DSQL signals optimistic-concurrency conflicts with SQLSTATE 40001. */
 const RETRYABLE = new Set(["40001", "40P01"]);
-const DEFAULT_MAX_ATTEMPTS = 32;
+const DEFAULT_MAX_ATTEMPTS = 64;
 const BACKOFF_BASE_MS = 25;
 const BACKOFF_CAP_MS = 1000;
 
@@ -113,7 +113,7 @@ export async function withTx<T>(
       if (!retryable || attempt >= maxAttempts) throw err;
       if (stats) stats.retries++;
       const exponential = Math.min(BACKOFF_BASE_MS * 2 ** (attempt - 1), BACKOFF_CAP_MS);
-      const backoff = exponential * (0.5 + Math.random());
+      const backoff = Math.min(exponential * (0.5 + Math.random()), BACKOFF_CAP_MS);
       await new Promise((r) => setTimeout(r, backoff));
     } finally {
       client.release();

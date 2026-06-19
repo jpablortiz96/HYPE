@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import useSWR from "swr";
+import MarketDepth from "@/components/MarketDepth";
 import PriceChart from "@/components/PriceChart";
 import TradePanel from "@/components/TradePanel";
 import { fetcher, money, pct, trendClass } from "@/lib/fmt";
@@ -80,6 +81,8 @@ export default function AssetView({ symbol }: { symbol: string }) {
               <p className="font-mono text-lg tnum">{money(a.basePrice)} $H</p>
             </div>
           </div>
+
+          <MarketDepth raw={a.raw} />
 
           <div className="panel">
             <div className="px-4 py-3 border-b border-line flex items-center justify-between">
