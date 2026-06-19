@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useSWRConfig } from "swr";
-import { buyCost, sellProceeds, sellFee, microToFloat } from "@/lib/curve";
+import { buyCost, sellProceeds, sellFee, spotPrice, microToFloat } from "@/lib/curve";
 import { money } from "@/lib/fmt";
 
 interface Props {
@@ -27,7 +27,6 @@ export default function TradePanel({ symbol, raw, positionQty, cash, onTraded }:
     return Number.isFinite(n) && n > 0 ? n : 0;
   }, [qtyStr]);
 
-  // Exact preview: same BigInt curve math the settlement engine runs server-side.
   const preview = useMemo(() => {
     if (qty <= 0 || qty > 100_000) return null;
     try {
@@ -37,7 +36,14 @@ export default function TradePanel({ symbol, raw, positionQty, cash, onTraded }:
       const q = BigInt(qty);
       if (side === "BUY") {
         const cost = buyCost(base, slope, supply, q);
-        return { label: "You pay", amount: microToFloat(cost), fee: 0, net: microToFloat(cost) };
+        return {
+          label: "You pay",
+          amount: microToFloat(cost),
+          fee: 0,
+          net: microToFloat(cost),
+          avgFill: microToFloat(cost / q),
+          projectedSpot: microToFloat(spotPrice(base, slope, supply + q)),
+        };
       }
       if (q > supply) return null;
       const gross = sellProceeds(base, slope, supply, q);
@@ -47,6 +53,8 @@ export default function TradePanel({ symbol, raw, positionQty, cash, onTraded }:
         amount: microToFloat(gross),
         fee: microToFloat(fee),
         net: microToFloat(gross - fee),
+        avgFill: microToFloat(gross / q),
+        projectedSpot: microToFloat(spotPrice(base, slope, supply - q)),
       };
     } catch {
       return null;
@@ -87,7 +95,7 @@ export default function TradePanel({ symbol, raw, positionQty, cash, onTraded }:
         onTraded?.();
       }
     } catch {
-      setMsg({ kind: "err", text: "Network error. The exchange is still solvent — retry." });
+      setMsg({ kind: "err", text: "Network error. The exchange is still solvent - retry." });
     } finally {
       setBusy(false);
     }
@@ -95,24 +103,32 @@ export default function TradePanel({ symbol, raw, positionQty, cash, onTraded }:
 
   return (
     <div className="panel p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <span className="eyebrow">Trade desk</span>
-        <span className="font-mono text-[11px] text-mut tnum">
-          held: {positionQty} · cash: {money(cash)} $H
-        </span>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <span className="eyebrow">Trade desk</span>
+          <p className="mt-1 font-mono text-xs text-mut">Exact curve quote · Aurora DSQL settlement</p>
+        </div>
+        <div className="text-right font-mono text-[11px] text-mut tnum">
+          <p>
+            held <span className="text-paper">{positionQty}</span>
+          </p>
+          <p>
+            cash <span className="text-amber">{money(cash)} $H</span>
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 rounded-lg border border-line bg-ink p-1">
         {(["BUY", "SELL"] as Side[]).map((s) => (
           <button
             key={s}
             onClick={() => setSide(s)}
-            className={`font-mono text-sm py-2 rounded border transition ${
+            className={`font-mono text-sm py-2.5 rounded transition ${
               side === s
                 ? s === "BUY"
-                  ? "bg-up/15 border-up text-up"
-                  : "bg-down/15 border-down text-down"
-                : "border-line text-mut hover:text-paper"
+                  ? "bg-up/15 text-up shadow-[inset_0_0_0_1px_rgba(44,224,139,0.55)]"
+                  : "bg-down/15 text-down shadow-[inset_0_0_0_1px_rgba(255,77,109,0.55)]"
+                : "text-mut hover:text-paper"
             }`}
           >
             {s}
@@ -122,15 +138,18 @@ export default function TradePanel({ symbol, raw, positionQty, cash, onTraded }:
 
       <label className="block">
         <span className="eyebrow">Shares (whole units)</span>
-        <input
-          type="number"
-          min={1}
-          max={100000}
-          step={1}
-          value={qtyStr}
-          onChange={(e) => setQtyStr(e.target.value)}
-          className="mt-1 w-full bg-ink border border-line rounded px-3 py-2 font-mono text-paper tnum"
-        />
+        <div className="mt-1 flex items-center rounded border border-line bg-ink focus-within:border-amber">
+          <input
+            type="number"
+            min={1}
+            max={100000}
+            step={1}
+            value={qtyStr}
+            onChange={(e) => setQtyStr(e.target.value)}
+            className="w-full bg-transparent px-3 py-3 font-mono text-lg text-paper tnum outline-none"
+          />
+          <span className="pr-3 font-mono text-xs text-mut">{symbol}</span>
+        </div>
       </label>
 
       <div className="flex flex-wrap gap-2">
@@ -138,7 +157,7 @@ export default function TradePanel({ symbol, raw, positionQty, cash, onTraded }:
           <button
             key={n}
             onClick={() => setQtyStr(String(n))}
-            className="font-mono text-xs px-2.5 py-1 rounded border border-line text-mut hover:border-amber hover:text-amber transition"
+            className="font-mono text-xs px-2.5 py-1 rounded border border-line bg-ink text-mut hover:border-amber hover:text-amber transition"
           >
             {n}
           </button>
@@ -146,7 +165,7 @@ export default function TradePanel({ symbol, raw, positionQty, cash, onTraded }:
         {side === "SELL" && positionQty > 0 && (
           <button
             onClick={() => setQtyStr(String(positionQty))}
-            className="font-mono text-xs px-2.5 py-1 rounded border border-line text-mut hover:border-amber hover:text-amber transition"
+            className="font-mono text-xs px-2.5 py-1 rounded border border-line bg-ink text-mut hover:border-amber hover:text-amber transition"
           >
             all {positionQty}
           </button>
@@ -154,39 +173,53 @@ export default function TradePanel({ symbol, raw, positionQty, cash, onTraded }:
       </div>
 
       {preview && (
-        <div className="border border-line rounded p-3 font-mono text-sm space-y-1 bg-ink">
+        <div className="border border-line rounded-lg p-3 font-mono text-sm space-y-2 bg-ink">
           <div className="flex justify-between">
             <span className="text-mut">{side === "BUY" ? "Curve cost" : "Curve proceeds"}</span>
             <span className="text-paper tnum">{money(preview.amount)} $H</span>
           </div>
+          <div className="flex justify-between">
+            <span className="text-mut">Average fill</span>
+            <span className="text-paper tnum">{money(preview.avgFill)} $H</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-mut">Projected spot</span>
+            <span className="text-amber tnum">{money(preview.projectedSpot)} $H</span>
+          </div>
           {side === "SELL" && (
             <div className="flex justify-between">
               <span className="text-mut">Exchange fee (1%)</span>
-              <span className="text-down tnum">−{money(preview.fee)} $H</span>
+              <span className="text-down tnum">-{money(preview.fee)} $H</span>
             </div>
           )}
-          <div className="flex justify-between border-t border-line pt-1">
+          <div className="flex justify-between border-t border-line pt-2">
             <span className="text-amberdim">{preview.label}</span>
             <span className="text-amber tnum">{money(preview.net)} $H</span>
           </div>
           <p className="text-[10px] text-mut pt-1">
-            Exact to the micro-unit — same integer math the settlement engine runs.
+            Exact to the micro-unit - same integer math the settlement engine runs.
           </p>
         </div>
       )}
 
       <button onClick={submit} disabled={busy || blocked} className="btn-amber w-full">
-        {busy ? "Settling on Aurora DSQL…" : `${side} ${qty || ""} ${symbol}`}
+        {busy ? "Settling on Aurora DSQL..." : `${side} ${qty || ""} ${symbol}`}
       </button>
 
       {side === "SELL" && qty > positionQty && (
-        <p className="font-mono text-xs text-down">You hold {positionQty} shares — reduce the quantity.</p>
+        <p className="font-mono text-xs text-down">You hold {positionQty} shares - reduce the quantity.</p>
       )}
       {side === "BUY" && preview && preview.net > cash && (
-        <p className="font-mono text-xs text-down">Costs {money(preview.net)} $H — you have {money(cash)} $H.</p>
+        <p className="font-mono text-xs text-down">Costs {money(preview.net)} $H - you have {money(cash)} $H.</p>
       )}
       {msg && (
-        <p className={`font-mono text-xs ${msg.kind === "ok" ? "text-up" : "text-down"}`}>{msg.text}</p>
+        <p
+          className={`rounded border px-3 py-2 font-mono text-xs ${
+            msg.kind === "ok" ? "border-up/40 bg-up/10 text-up" : "border-down/40 bg-down/10 text-down"
+          }`}
+        >
+          {msg.text}
+        </p>
       )}
     </div>
   );
