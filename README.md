@@ -170,18 +170,65 @@ Full architecture notes: [docs/architecture.md](docs/architecture.md) and
 
 ## Screenshots
 
-| Surface | Screenshot |
-|---|---|
-| Home | [01-home.png](docs/submission-assets/01-home.png) |
-| Market board | [02-market.png](docs/submission-assets/02-market.png) |
-| Asset terminal / CORRIDO | [03-asset-corrido.png](docs/submission-assets/03-asset-corrido.png) |
-| Proof of Solvency | [04-ledger-proof.png](docs/submission-assets/04-ledger-proof.png) |
-| HYPE Pro | [05-pro-analytics.png](docs/submission-assets/05-pro-analytics.png) |
-| List a Trend | [06-list-trend.png](docs/submission-assets/06-list-trend.png) |
-| Campaigns | [07-campaigns.png](docs/submission-assets/07-campaigns.png) |
-| Leagues | [08-leagues.png](docs/submission-assets/08-leagues.png) |
-| Aurora DSQL console | [docs/aws-console-dsql.png](docs/aws-console-dsql.png) |
-| `sim:pump` terminal | [05-sim-pump-dsql-terminal.png](docs/submission-assets/05-sim-pump-dsql-terminal.png) |
+### Product surfaces
+
+<table>
+  <tr>
+    <td width="50%">
+      <strong>Home</strong><br />
+      <img src="docs/submission-assets/01-home.png" alt="HYPE home" width="100%" />
+    </td>
+    <td width="50%">
+      <strong>Market board</strong><br />
+      <img src="docs/submission-assets/02-market.png" alt="HYPE market board" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <strong>Asset terminal / CORRIDO</strong><br />
+      <img src="docs/submission-assets/03-asset-corrido.png" alt="HYPE asset terminal" width="100%" />
+    </td>
+    <td width="50%">
+      <strong>Proof of Solvency</strong><br />
+      <img src="docs/submission-assets/04-ledger-proof.png" alt="HYPE proof of solvency ledger" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <strong>HYPE Pro</strong><br />
+      <img src="docs/submission-assets/05-pro-analytics.png" alt="HYPE Pro analytics" width="100%" />
+    </td>
+    <td width="50%">
+      <strong>List a Trend</strong><br />
+      <img src="docs/submission-assets/06-list-trend.png" alt="HYPE list a trend" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <strong>Campaigns</strong><br />
+      <img src="docs/submission-assets/07-campaigns.png" alt="HYPE campaigns" width="100%" />
+    </td>
+    <td width="50%">
+      <strong>Leagues</strong><br />
+      <img src="docs/submission-assets/08-leagues.png" alt="HYPE leagues" width="100%" />
+    </td>
+  </tr>
+</table>
+
+### Technical proof
+
+<table>
+  <tr>
+    <td width="50%">
+      <strong>Aurora DSQL console</strong><br />
+      <img src="docs/aws-console-dsql.png" alt="Aurora DSQL cluster proof" width="100%" />
+    </td>
+    <td width="50%">
+      <strong>sim:pump terminal</strong><br />
+      <img src="docs/submission-assets/05-sim-pump-dsql-terminal.png" alt="sim pump proof" width="100%" />
+    </td>
+  </tr>
+</table>
 
 Vercel dashboard screenshot is intentionally not included in the repo yet. Add it to
 `docs/submission-assets/` if the submission form asks for deployment proof.
