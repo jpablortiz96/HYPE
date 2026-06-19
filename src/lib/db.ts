@@ -59,8 +59,22 @@ export async function q<T = any>(text: string, params: any[] = []): Promise<T[]>
   return res.rows as T[];
 }
 
-/** Aurora DSQL signals an optimistic-concurrency conflict with SQLSTATE 40001. */
+/** Aurora DSQL signals optimistic-concurrency conflicts with SQLSTATE 40001. */
 const RETRYABLE = new Set(["40001", "40P01"]);
+const DEFAULT_MAX_ATTEMPTS = 32;
+const BACKOFF_BASE_MS = 25;
+const BACKOFF_CAP_MS = 1000;
+
+function isRetryableTxError(err: unknown): boolean {
+  const e = err as { code?: unknown; message?: unknown };
+  if (typeof e.code === "string" && RETRYABLE.has(e.code)) return true;
+
+  const message = typeof e.message === "string" ? e.message.toLowerCase() : "";
+  return (
+    message.includes("oc000") ||
+    message.includes("change conflicts with another transaction")
+  );
+}
 
 export interface TxStats {
   retries: number;
@@ -75,7 +89,7 @@ export interface TxStats {
 export async function withTx<T>(
   fn: (client: PoolClient) => Promise<T>,
   stats?: TxStats,
-  maxAttempts = 8
+  maxAttempts = DEFAULT_MAX_ATTEMPTS
 ): Promise<T> {
   const p = getPool();
   let attempt = 0;
@@ -95,10 +109,11 @@ export async function withTx<T>(
     } catch (err: any) {
       await client.query("ROLLBACK").catch(() => {});
       attempt++;
-      const retryable = RETRYABLE.has(err?.code);
+      const retryable = isRetryableTxError(err);
       if (!retryable || attempt >= maxAttempts) throw err;
       if (stats) stats.retries++;
-      const backoff = Math.min(40 * 2 ** attempt, 500) * (0.5 + Math.random());
+      const exponential = Math.min(BACKOFF_BASE_MS * 2 ** (attempt - 1), BACKOFF_CAP_MS);
+      const backoff = exponential * (0.5 + Math.random());
       await new Promise((r) => setTimeout(r, backoff));
     } finally {
       client.release();
