@@ -55,6 +55,7 @@ export default function ProPage() {
   const { data } = useSWR("/api/pro", fetcher, { refreshInterval: 6000 });
   const metrics = data?.metrics;
   const scores = data?.scores;
+  const monetization = data?.monetization;
 
   return (
     <div className="py-8">
@@ -121,6 +122,59 @@ export default function ProPage() {
         <ScoreDial label="Culture Opportunity Score" value={scores?.cultureOpportunity ?? 0} />
         <ScoreDial label="Brand Readiness Score" value={scores?.brandReadiness ?? 0} />
         <ScoreDial label="Creator Monetization Potential" value={scores?.creatorMonetization ?? 0} />
+      </section>
+
+      <section className="panel p-5 mb-6">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+          <div>
+            <p className="eyebrow">Monetization Surface</p>
+            <h2 className="mt-2 font-display font-semibold text-2xl">
+              Sponsored markets and simulated creator revenue
+            </h2>
+            <p className="mt-2 text-sm text-mut max-w-2xl">
+              HYPE Pro turns culture volume into a future B2B surface: promoted IPOs,
+              campaign-ready assets, and estimated creator royalty intelligence.
+            </p>
+          </div>
+          <div className="font-mono text-right">
+            <p className="text-4xl text-amber tnum">{monetization?.brandOpportunityScore ?? 0}</p>
+            <p className="text-xs text-mut">brand opportunity score</p>
+          </div>
+        </div>
+        <div className="grid md:grid-cols-4 gap-3">
+          <div className="border border-line rounded bg-ink p-3">
+            <p className="eyebrow">Sponsored trends</p>
+            <p className="mt-2 font-mono text-2xl tnum">{monetization?.sponsoredTrendsCount ?? 0}</p>
+          </div>
+          <div className="border border-line rounded bg-ink p-3">
+            <p className="eyebrow">Estimated royalties</p>
+            <p className="mt-2 font-mono text-2xl tnum">
+              {monetization ? money(monetization.estimatedCreatorRoyalties) : "--"} $H
+            </p>
+          </div>
+          <div className="border border-line rounded bg-ink p-3">
+            <p className="eyebrow">Culture volume</p>
+            <p className="mt-2 font-mono text-2xl text-amber tnum">
+              {monetization ? compact(monetization.totalCultureVolume) : "--"} $H
+            </p>
+          </div>
+          <div className="border border-line rounded bg-ink p-3">
+            <p className="eyebrow">Top sponsored asset</p>
+            {monetization?.topSponsoredAsset ? (
+              <Link
+                href={`/asset/${monetization.topSponsoredAsset.symbol}`}
+                className="mt-2 block font-mono text-amber hover:underline"
+              >
+                {monetization.topSponsoredAsset.emoji} {monetization.topSponsoredAsset.symbol}
+              </Link>
+            ) : (
+              <p className="mt-2 font-mono text-xl text-mut">None yet</p>
+            )}
+          </div>
+        </div>
+        <p className="mt-3 font-mono text-[10px] text-mut">
+          Royalty figures are simulated analytics only. No ledger transfers are executed in this sprint.
+        </p>
       </section>
 
       <section className="panel p-5 mb-6">

@@ -29,6 +29,14 @@ CREATE TABLE IF NOT EXISTS assets (
   slope       BIGINT NOT NULL,
   supply      BIGINT NOT NULL,
   reserve     BIGINT NOT NULL,
+  creator_user_id TEXT NULL,
+  creator_handle TEXT NULL,
+  origin_story TEXT NULL,
+  is_sponsored BOOLEAN NULL,
+  sponsor_name TEXT NULL,
+  sponsor_type TEXT NULL,
+  campaign_note TEXT NULL,
+  created_by_listing BOOLEAN NULL,
   created_at  TIMESTAMPTZ NOT NULL
 );
 

@@ -7,6 +7,7 @@ import { fetcher, money } from "@/lib/fmt";
 
 const LINKS = [
   { href: "/market", label: "Market" },
+  { href: "/list", label: "List" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/pro", label: "Pro" },
   { href: "/leaderboard", label: "Leaderboard" },

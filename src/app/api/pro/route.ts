@@ -16,6 +16,8 @@ interface AssetRow {
   slope: string;
   supply: string;
   reserve: string;
+  is_sponsored: boolean | null;
+  sponsor_name: string | null;
 }
 
 function clamp(n: number, min = 0, max = 100): number {
@@ -32,10 +34,15 @@ export async function GET() {
   const dayAgo = new Date(now - 24 * 3600 * 1000);
 
   const assets = await q<AssetRow>(
-    "SELECT id, symbol, name, category, emoji, region, base_price, slope, supply, reserve FROM assets"
+    `SELECT id, symbol, name, category, emoji, region, base_price, slope, supply, reserve,
+            is_sponsored, sponsor_name
+     FROM assets`
   );
   const totals = await q<{ volume: string; trades: string }>(
     "SELECT COALESCE(SUM(total),0)::text AS volume, COUNT(*)::text AS trades FROM trades"
+  );
+  const totalsByAsset = await q<{ asset_id: string; volume: string; trades: string }>(
+    "SELECT asset_id, COALESCE(SUM(total),0)::text AS volume, COUNT(*)::text AS trades FROM trades GROUP BY asset_id"
   );
   const vols24 = await q<{ asset_id: string; volume: string; trades: string }>(
     "SELECT asset_id, COALESCE(SUM(total),0)::text AS volume, COUNT(*)::text AS trades FROM trades WHERE created_at > $1 GROUP BY asset_id",
@@ -52,6 +59,7 @@ export async function GET() {
 
   const totalVolume = BigInt(totals[0]?.volume ?? "0");
   const totalTrades = Number(totals[0]?.trades ?? "0");
+  const totalBy = new Map(totalsByAsset.map((v) => [v.asset_id, v]));
   const volBy = new Map(vols24.map((v) => [v.asset_id, v]));
   const refBy = new Map<string, string>();
   for (const r of refs) refBy.set(r.asset_id, r.price);
@@ -95,6 +103,9 @@ export async function GET() {
       volume24h,
       trades24h,
       volatility,
+      isSponsored: a.is_sponsored === true,
+      sponsorName: a.sponsor_name,
+      totalVolume: BigInt(totalBy.get(a.id)?.volume ?? "0"),
     };
   });
 
@@ -109,6 +120,12 @@ export async function GET() {
   const breadthScore = clamp((activeAssets / Math.max(assets.length, 1)) * 100);
   const momentumScore = clamp(avgMomentum * 3);
   const liquidityScore = clamp(Math.log10(Math.max(microToFloat(totalVolume), 1)) * 16);
+  const sponsoredAssets = ranked.filter((a) => a.isSponsored);
+  const topSponsored = sponsoredAssets.slice().sort((a, b) => compareMicroDesc(a.totalVolume, b.totalVolume))[0] ?? null;
+  const estimatedCreatorRoyalties = totalVolume / 100n;
+  const brandOpportunityScore = Math.round(
+    clamp(35 + sponsoredAssets.length * 8 + liquidityScore * 0.25 + breadthScore * 0.2 + momentumScore * 0.15)
+  );
 
   return NextResponse.json({
     metrics: {
@@ -138,6 +155,19 @@ export async function GET() {
       cultureOpportunity: Math.round(clamp(30 + breadthScore * 0.25 + momentumScore * 0.25 + liquidityScore * 0.2)),
       brandReadiness: Math.round(clamp(35 + liquidityScore * 0.35 + activityScore * 0.2 + breadthScore * 0.15)),
       creatorMonetization: Math.round(clamp(32 + momentumScore * 0.3 + activityScore * 0.25 + breadthScore * 0.15)),
+    },
+    monetization: {
+      sponsoredTrendsCount: sponsoredAssets.length,
+      estimatedCreatorRoyalties: microToFloat(estimatedCreatorRoyalties),
+      totalCultureVolume: microToFloat(totalVolume),
+      brandOpportunityScore,
+      topSponsoredAsset: topSponsored && {
+        symbol: topSponsored.symbol,
+        name: topSponsored.name,
+        emoji: topSponsored.emoji,
+        sponsorName: topSponsored.sponsorName,
+        totalVolume: microToFloat(topSponsored.totalVolume),
+      },
     },
     at: new Date().toISOString(),
   });

@@ -9,6 +9,7 @@ import { fetcher, money, compact, pct, trendClass } from "@/lib/fmt";
 export default function MarketPage() {
   const { data } = useSWR("/api/market", fetcher, { refreshInterval: 4000 });
   const assets = data?.assets ?? [];
+  const sponsored = assets.filter((a: any) => a.sponsorship).slice(0, 3);
 
   return (
     <div className="py-8">
@@ -19,6 +20,28 @@ export default function MarketPage() {
         </div>
         <IntegrityBadge />
       </div>
+
+      {sponsored.length > 0 && (
+        <div className="grid md:grid-cols-3 gap-3 mb-4">
+          {sponsored.map((a: any) => (
+            <Link key={a.symbol} href={`/asset/${a.symbol}`} className="panel p-4 block hover:border-amber transition">
+              <div className="flex items-center justify-between gap-3">
+                <span className="eyebrow">Sponsored IPO</span>
+                <span className="font-mono text-[10px] text-ink bg-amber px-2 py-0.5 rounded">
+                  Campaign-ready
+                </span>
+              </div>
+              <div className="mt-3 font-mono text-lg text-amber">
+                {a.emoji} {a.symbol}
+              </div>
+              <p className="text-sm text-mut">{a.name}</p>
+              <p className="mt-2 font-mono text-xs text-amberdim">
+                {a.sponsorship.sponsorName ?? "Promoted cultural market"}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
 
       <div className="panel overflow-x-auto">
         <table className="w-full min-w-[760px] font-mono text-sm">
@@ -49,6 +72,11 @@ export default function MarketPage() {
                     <span className="text-lg">{a.emoji}</span>
                     <span>
                       <span className="text-amber group-hover:underline">{a.symbol}</span>
+                      {a.sponsorship && (
+                        <span className="ml-2 align-middle font-mono text-[10px] text-ink bg-amber px-1.5 py-0.5 rounded">
+                          Promoted
+                        </span>
+                      )}
                       <span className="block text-xs text-mut font-sans">
                         {a.name} · {a.region}
                       </span>

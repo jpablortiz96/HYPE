@@ -84,6 +84,47 @@ export default function AssetView({ symbol }: { symbol: string }) {
 
           <MarketDepth raw={a.raw} />
 
+          <div className="panel p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+              <div>
+                <p className="eyebrow">Creator Revenue Engine</p>
+                <h2 className="font-display font-semibold text-xl mt-1">Royalty Simulation</h2>
+              </div>
+              <span className="font-mono text-[10px] text-amberdim">simulated, not paid</span>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3 font-mono text-sm">
+              <div className="border border-line rounded bg-ink p-3">
+                <p className="text-[10px] uppercase tracking-widest text-amberdim">Total volume</p>
+                <p className="mt-2 text-xl text-amber tnum">{money(a.royaltySimulation.totalVolume)} $H</p>
+              </div>
+              <div className="border border-line rounded bg-ink p-3">
+                <p className="text-[10px] uppercase tracking-widest text-amberdim">Creator royalty at 1%</p>
+                <p className="mt-2 text-xl tnum">{money(a.royaltySimulation.simulatedCreatorRoyalty)} $H</p>
+              </div>
+              <div className="border border-line rounded bg-ink p-3">
+                <p className="text-[10px] uppercase tracking-widest text-amberdim">Estimated campaign value</p>
+                <p className="mt-2 text-xl tnum">{money(a.royaltySimulation.estimatedCampaignValue)} $H</p>
+              </div>
+            </div>
+            <div className="mt-3 grid sm:grid-cols-3 gap-3 font-mono text-xs text-mut">
+              <div className="flex justify-between border border-line rounded bg-ink p-3">
+                <span>Trades</span>
+                <span className="tnum text-paper">{a.royaltySimulation.tradeCount}</span>
+              </div>
+              <div className="flex justify-between border border-line rounded bg-ink p-3">
+                <span>Active traders</span>
+                <span className="tnum text-paper">{a.royaltySimulation.activeTraders}</span>
+              </div>
+              <div className="flex justify-between border border-line rounded bg-ink p-3">
+                <span>Holders</span>
+                <span className="tnum text-paper">{a.royaltySimulation.holders}</span>
+              </div>
+            </div>
+            <p className="mt-3 font-mono text-[10px] text-mut">
+              Estimated only. This sprint does not move money, touch reserves, debit users, or pay treasury.
+            </p>
+          </div>
+
           <div className="panel">
             <div className="px-4 py-3 border-b border-line flex items-center justify-between">
               <span className="eyebrow">Recent prints</span>
@@ -126,6 +167,35 @@ export default function AssetView({ symbol }: { symbol: string }) {
             cash={cash}
             onTraded={() => mutate()}
           />
+          {a.sponsorship && (
+            <div className="panel p-4 font-mono text-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="eyebrow">Sponsored IPO</p>
+                <span className="text-[10px] text-ink bg-amber px-2 py-0.5 rounded">Campaign-ready</span>
+              </div>
+              <div>
+                <p className="text-mut text-xs">Sponsor</p>
+                <p className="text-amber tnum">{a.sponsorship.sponsorName}</p>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-mut">Type</span>
+                <span className="text-paper">{a.sponsorship.sponsorType}</span>
+              </div>
+              {a.sponsorship.campaignNote && (
+                <p className="text-xs text-mut">{a.sponsorship.campaignNote}</p>
+              )}
+              <div className="border-t border-line pt-3">
+                <p className="text-[10px] uppercase tracking-widest text-amberdim mb-2">
+                  Suggested monetization
+                </p>
+                <div className="space-y-1 text-xs text-mut">
+                  {a.sponsorship.suggestedMonetization.map((item: string) => (
+                    <p key={item}>{item}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           {data.position && (
             <div className="panel p-4 font-mono text-sm space-y-1">
               <p className="eyebrow mb-1">Your position</p>
