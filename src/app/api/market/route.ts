@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 interface AssetRow {
   id: string; symbol: string; name: string; category: string; emoji: string; region: string;
   base_price: string; slope: string; supply: string; reserve: string;
+  is_sponsored: boolean | null; sponsor_name: string | null; sponsor_type: string | null; campaign_note: string | null;
 }
 
 export async function GET() {
@@ -16,7 +17,9 @@ export async function GET() {
   const sparkCutoff = new Date(now - 48 * 3600 * 1000);
 
   const assets = await q<AssetRow>(
-    "SELECT id, symbol, name, category, emoji, region, base_price, slope, supply, reserve FROM assets ORDER BY reserve DESC"
+    `SELECT id, symbol, name, category, emoji, region, base_price, slope, supply, reserve,
+            is_sponsored, sponsor_name, sponsor_type, campaign_note
+     FROM assets ORDER BY reserve DESC`
   );
   const vols = await q<{ asset_id: string; vol: string; n: string }>(
     "SELECT asset_id, COALESCE(SUM(total),0)::text AS vol, COUNT(*)::text AS n FROM trades WHERE created_at > $1 GROUP BY asset_id",
@@ -61,6 +64,14 @@ export async function GET() {
       trades24h: v ? Number(v.n) : 0,
       supply: Number(a.supply),
       reserve: microToFloat(a.reserve),
+      sponsorship: a.is_sponsored
+        ? {
+            label: "Sponsored IPO",
+            sponsorName: a.sponsor_name,
+            sponsorType: a.sponsor_type,
+            campaignNote: a.campaign_note,
+          }
+        : null,
       spark,
       raw: { base: a.base_price, slope: a.slope, supply: a.supply },
     };

@@ -8,6 +8,17 @@ import { getPool, isDsql } from "../src/lib/db";
  * with CREATE INDEX ASYNC (they build in the background as an async job),
  * so this script rewrites the portable schema accordingly.
  */
+const ASSET_COLUMN_MIGRATIONS = [
+  ["creator_user_id", "TEXT NULL"],
+  ["creator_handle", "TEXT NULL"],
+  ["origin_story", "TEXT NULL"],
+  ["is_sponsored", "BOOLEAN NULL"],
+  ["sponsor_name", "TEXT NULL"],
+  ["sponsor_type", "TEXT NULL"],
+  ["campaign_note", "TEXT NULL"],
+  ["created_by_listing", "BOOLEAN NULL"],
+] as const;
+
 async function main() {
   const raw = readFileSync(join(process.cwd(), "db", "schema.sql"), "utf8");
   const dsql = isDsql();
@@ -34,6 +45,20 @@ async function main() {
       }
     }
   }
+
+  const existingColumns = await pool.query<{ column_name: string }>(
+    "SELECT column_name FROM information_schema.columns WHERE table_name = 'assets'"
+  );
+  const existing = new Set(existingColumns.rows.map((r) => r.column_name));
+  for (const [name, type] of ASSET_COLUMN_MIGRATIONS) {
+    if (existing.has(name)) {
+      console.log(`  skip ALTER TABLE assets ADD COLUMN ${name} (already exists)`);
+      continue;
+    }
+    await pool.query(`ALTER TABLE assets ADD COLUMN ${name} ${type}`);
+    console.log(`  ok   ALTER TABLE assets ADD COLUMN ${name}`);
+  }
+
   console.log("Schema ready.");
   await pool.end();
 }
