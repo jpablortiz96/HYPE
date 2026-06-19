@@ -17,25 +17,28 @@ export default function Ticker() {
 
   if (assets.length === 0) {
     return (
-      <div className="h-8 border-b border-line bg-panel flex items-center px-4">
-        <span className="font-mono text-xs text-amberdim animate-pulseamber">
-          ▮ HYPE TAPE — connecting to the floor…
-        </span>
+      <div className="h-7 border-b border-line bg-panel/95 overflow-hidden">
+        <div className="mx-auto max-w-6xl h-full px-4 flex items-center">
+          <span className="font-mono text-[11px] text-amberdim animate-pulseamber">
+            HYPE TAPE / connecting to the floor...
+          </span>
+        </div>
       </div>
     );
   }
 
-  // duplicate the strip so the -50% translate loops seamlessly
   const strip = [...assets, ...assets];
 
   return (
-    <div className="h-8 border-b border-line bg-panel overflow-hidden relative" aria-hidden="true">
-      <div className="flex items-center h-full w-max animate-tape">
+    <div className="h-7 border-b border-line bg-panel/95 overflow-hidden relative">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-panel to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-panel to-transparent" />
+      <div className="flex items-center h-full w-max max-w-none animate-tape will-change-transform">
         {strip.map((a, i) => (
           <Link
             key={`${a.symbol}-${i}`}
             href={`/asset/${a.symbol}`}
-            className="flex items-center gap-2 px-5 font-mono text-xs whitespace-nowrap hover:bg-panel2"
+            className="flex items-center gap-2 px-4 font-mono text-[11px] whitespace-nowrap hover:bg-panel2"
           >
             <span>{a.emoji}</span>
             <span className="text-amber">{a.symbol}</span>

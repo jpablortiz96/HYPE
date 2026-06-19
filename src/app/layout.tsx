@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans bg-ink text-paper min-h-screen antialiased">
         <Ticker />
         <Nav />
-        <main className="mx-auto max-w-6xl px-4 pb-24">{children}</main>
+        <main className="mx-auto max-w-6xl min-w-0 overflow-hidden px-4 pb-24">{children}</main>
         <footer className="border-t border-line py-8">
           <div className="mx-auto max-w-6xl px-4 flex flex-wrap items-center justify-between gap-3">
             <p className="font-mono text-xs text-mut">

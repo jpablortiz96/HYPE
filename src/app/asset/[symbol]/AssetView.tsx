@@ -3,7 +3,7 @@
 import Link from "next/link";
 import useSWR from "swr";
 import MarketDepth from "@/components/MarketDepth";
-import PriceChart from "@/components/PriceChart";
+import TradingChart from "@/components/TradingChart";
 import TradePanel from "@/components/TradePanel";
 import { fetcher, money, pct, trendClass } from "@/lib/fmt";
 
@@ -63,11 +63,15 @@ export default function AssetView({ symbol }: { symbol: string }) {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_340px] gap-4">
+      <div className="grid xl:grid-cols-[minmax(0,1fr)_350px] gap-5">
         <div className="space-y-4 min-w-0">
-          <PriceChart series={data.series ?? []} />
+          <TradingChart
+            symbol={a.symbol}
+            series={data.series ?? []}
+            recentTrades={data.recentTrades ?? []}
+          />
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid sm:grid-cols-3 gap-3">
             <div className="panel p-3">
               <p className="eyebrow">Supply</p>
               <p className="font-mono text-lg tnum">{a.supply.toLocaleString()}</p>
